@@ -1,0 +1,84 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url "https://maven.google.com"
+        }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.1'
+        classpath "digital.wup:android-maven-publish:3.1.1"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.kotlinVersion}"
+        classpath "org.jetbrains.dokka:dokka-android-gradle-plugin:${rootProject.dokkaVersion}"
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.dokka-android'
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        minSdkVersion 16
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+    }
+
+    lintOptions {
+        warning('InvalidPackage', 'NewApi')
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    maven {
+        url "https://maven.google.com"
+    }
+}
+
+dependencies {
+    def compatVersion = '27.1.1'
+
+    androidTestCompile "com.android.support:support-annotations:${compatVersion}"
+    androidTestCompile 'com.android.support.test:runner:1.0.1'
+    testImplementation 'junit:junit:4.12'
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit:${rootProject.kotlinVersion}"
+
+
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    implementation project(':view-interfaces')
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${rootProject.kotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-list:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:lifecycle:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:utils:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-property:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-list-lifecycle:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-property-lifecycle:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin.android:lifecycle:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin.android:animations:${rootProject.libraryKotlinVersion}"
+
+    implementation "com.android.support:appcompat-v7:${compatVersion}"
+    implementation "com.android.support:cardview-v7:${compatVersion}"
+    implementation "com.android.support:gridlayout-v7:${compatVersion}"
+    implementation "com.android.support:recyclerview-v7:${compatVersion}"
+    implementation "com.android.support:design:${compatVersion}"
+}

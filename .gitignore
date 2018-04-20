@@ -6,6 +6,9 @@
 # User-specific stuff:
 .idea
 
+idea/
+*.iml
+
 # Sensitive or high-churn files:
 .idea/**/dataSources/
 .idea/**/dataSources.ids

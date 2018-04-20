@@ -1,12 +1,10 @@
 buildscript {
-    ext.kotlin_version = '1.2.31'
-    ext.libraryKotlinVersion = '0.2.2'
 
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.kotlinVersion}"
     }
 }
 
@@ -16,18 +14,19 @@ version '1.0-SNAPSHOT'
 apply plugin: 'kotlin'
 
 repositories {
-    mavenLocal()
     mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "com.lightningkite.kotlin:lk-kotlin-observable-list:${rootProject.libraryKotlinVersion}"
-    implementation "com.lightningkite.kotlin:lk-kotlin-lifecycle:${rootProject.libraryKotlinVersion}"
-    implementation "com.lightningkite.kotlin:lk-kotlin-utils:${rootProject.libraryKotlinVersion}"
-    implementation "com.lightningkite.kotlin:lk-kotlin-observable-property:${rootProject.libraryKotlinVersion}"
-    implementation "com.lightningkite.kotlin:lk-kotlin-observable-list-lifecycle:${rootProject.libraryKotlinVersion}"
-    implementation "com.lightningkite.kotlin:lk-kotlin-observable-property-lifecycle:${rootProject.libraryKotlinVersion}"
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${rootProject.kotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-list:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:lifecycle:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:utils:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-property:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-list-lifecycle:${rootProject.libraryKotlinVersion}"
+    implementation "com.lightningkite.kotlin:observable-property-lifecycle:${rootProject.libraryKotlinVersion}"
+    testCompile "org.jetbrains.kotlin:kotlin-reflect:${rootProject.kotlinVersion}"
 
 }
 
