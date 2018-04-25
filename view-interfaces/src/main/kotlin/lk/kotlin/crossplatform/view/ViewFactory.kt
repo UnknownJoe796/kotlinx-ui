@@ -1,7 +1,6 @@
 package lk.kotlin.crossplatform.view
 
 
-import com.lightningkite.kotlin.crossplatform.view.Animation
 import lk.kotlin.observable.list.ObservableList
 import lk.kotlin.observable.property.ConstantObservableProperty
 import lk.kotlin.observable.property.MutableObservableProperty
@@ -16,7 +15,7 @@ interface ViewFactory<VIEW> {
     fun window(
             stack: StackObservableProperty<() -> VIEW>,
             tabs: List<Pair<TabItem, () -> VIEW>>,
-            actions: ObservableList<TabItem>
+            actions: ObservableList<Pair<TabItem, ()->Unit>>
     ): VIEW
 
     fun pages(
@@ -33,49 +32,19 @@ interface ViewFactory<VIEW> {
 
     fun <T> list(
             data: ObservableList<T>,
-            itemToString: (T) -> String = { it.toString() },
-            onBottom: () -> Unit = {},
+            onBottom: () -> Unit,
+            itemToType: (T) -> Int,
             makeView: (type: Int, obs: ObservableProperty<T>) -> VIEW
     ): VIEW
 
     fun <T> grid(
             minItemSize: Float = Float.MAX_VALUE,
             data: ObservableList<T>,
-            itemToString: (T) -> String = { it.toString() },
             onBottom: () -> Unit = {},
+            itemToType: (T) -> Int,
             makeView: (type: Int, obs: ObservableProperty<T>) -> VIEW
     ): VIEW
-
-
-    //Pre-made items
-
-    fun listHeader(
-            title: ObservableProperty<String>,
-            subtitle: ObservableProperty<String?>,
-            icon: ObservableProperty<Image?>,
-            onClick: ObservableProperty<() -> Unit>
-    ): VIEW
-
-    fun listItem(
-            title: ObservableProperty<String>,
-            subtitle: ObservableProperty<String?>,
-            icon: ObservableProperty<Image?>
-    ): VIEW
-
-    fun listItemClick(
-            title: ObservableProperty<String>,
-            subtitle: ObservableProperty<String?>,
-            icon: ObservableProperty<Image?>,
-            onClick: ObservableProperty<() -> Unit>
-    ): VIEW
-
-    fun listItemToggle(
-            title: ObservableProperty<String>,
-            subtitle: ObservableProperty<String?>,
-            icon: ObservableProperty<Image?>,
-            toggle: MutableObservableProperty<Boolean>
-    ): VIEW
-
+    
 
     //Display
 
