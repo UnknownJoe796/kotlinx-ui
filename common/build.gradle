@@ -1,6 +1,7 @@
 
 
 buildscript {
+    ext.kotlin_version = rootProject.kotlinVersion
     repositories {
         jcenter()
         mavenCentral()
@@ -14,17 +15,17 @@ buildscript {
 
 apply plugin: 'kotlin-platform-common'
 apply plugin: 'kotlinx-serialization'
-//apply from: '../publishing.gradle'
+apply from: '../publishing.gradle'
 
 repositories {
-    mavenLocal()
     mavenCentral()
     jcenter()
     maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-common:common-${rootProject.kotlinVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:${rootProject.serializationVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-common:${rootProject.kotlinVersion}"
     implementation "com.lightningkite.kotlinx:common:${rootProject.libraryVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-test-common:${rootProject.kotlinVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-test-annotations-common:${rootProject.kotlinVersion}"

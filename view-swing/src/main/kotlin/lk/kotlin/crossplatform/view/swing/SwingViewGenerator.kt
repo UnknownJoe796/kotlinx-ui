@@ -1,5 +1,9 @@
 package lk.kotlin.crossplatform.view.swing
 
+import com.lightningkite.kotlinx.observable.list.ObservableList
+import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
+import com.lightningkite.kotlinx.observable.property.ObservableProperty
+import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.ui.*
 import java.util.*
 import javax.swing.JComponent

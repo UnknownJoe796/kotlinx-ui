@@ -1,6 +1,5 @@
 include ':common'
-include ':view-android'
 include ':view-swing'
 include ':view-android'
-include ':view-moe'
+//include ':view-moe'
 
