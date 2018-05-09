@@ -1,11 +1,11 @@
 package com.lightningkite.kotlin.crossplatform.view.console
 
-import com.lightningkite.kotlinx.ui.Gravity
-import com.lightningkite.kotlinx.ui.Image
-import com.lightningkite.kotlinx.ui.Point
-import com.lightningkite.kotlinx.ui.ViewFactory
-import com.lightningkite.kotlinx.ui.virtual.VerticalView
-import com.lightningkite.kotlinx.ui.virtual.VirtualViewFactory
+import com.lightningkite.kotlinx.ui.*
+import com.lightningkite.kotlinx.ui.virtual.*
+import com.lightningkite.kotlinx.observable.property.*
+import com.lightningkite.kotlinx.observable.list.*
+import com.lightningkite.kotlinx.locale.*
+import kotlin.test.Test
 
 class TestVirtuals {
 

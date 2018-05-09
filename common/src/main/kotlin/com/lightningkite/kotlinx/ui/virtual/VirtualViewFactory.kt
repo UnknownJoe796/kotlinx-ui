@@ -1,6 +1,9 @@
 package com.lightningkite.kotlinx.ui.virtual
 
 import com.lightningkite.kotlinx.ui.*
+import com.lightningkite.kotlinx.observable.property.*
+import com.lightningkite.kotlinx.observable.list.*
+import com.lightningkite.kotlinx.locale.*
 
 object VirtualViewFactory : ViewFactory<View> {
     override fun window(stack: StackObservableProperty<() -> View>, tabs: List<Pair<TabItem, () -> View>>, actions: ObservableList<Pair<TabItem, () -> Unit>>): View {

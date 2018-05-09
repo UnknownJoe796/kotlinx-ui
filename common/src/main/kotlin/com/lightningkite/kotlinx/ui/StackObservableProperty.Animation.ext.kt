@@ -1,5 +1,8 @@
 package com.lightningkite.kotlinx.ui
 
+import com.lightningkite.kotlinx.observable.property.*
+import com.lightningkite.kotlinx.observable.list.*
+
 fun <T> StackObservableProperty<T>.withAnimations(
         push: Animation = Animation.Push,
         pop: Animation = Animation.Pop,

@@ -1,5 +1,9 @@
 package com.lightningkite.kotlinx.ui
 
+import com.lightningkite.kotlinx.locale.*
+import com.lightningkite.kotlinx.observable.property.*
+import com.lightningkite.kotlinx.observable.list.*
+
 fun <VIEW> ViewFactory<VIEW>.header(
         text: String
 ): VIEW = header(ConstantObservableProperty(text))

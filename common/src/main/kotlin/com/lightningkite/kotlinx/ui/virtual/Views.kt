@@ -1,6 +1,9 @@
 package com.lightningkite.kotlinx.ui.virtual
 
 import com.lightningkite.kotlinx.ui.*
+import com.lightningkite.kotlinx.observable.property.*
+import com.lightningkite.kotlinx.observable.list.*
+import com.lightningkite.kotlinx.locale.*
 
 
 class BodyView(var text: ObservableProperty<String>) : View()
