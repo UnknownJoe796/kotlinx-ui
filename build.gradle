@@ -1,9 +1,41 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+
 buildscript {
-    ext.repositoryGroupName = 'com.lightningkite.kotlin.crossplatform'
-    ext.libraryKotlinVersion = '0.3.0'
-    ext.kotlinVersion = '1.2.31'
+    ext.repositoryGroupName = 'com.lightningkite.kotlinx.ui'
+    ext.kotlinVersion = '1.2.41'
+    ext.kotlinNativeVersion = '0.6.2'
+    ext.libraryVersion = '0.4.0'
     ext.dokkaVersion = '0.9.16'
+    ext.serializationVersion = '0.5.0'
+    ext.androidMavenPublishPluginVersion = '3.1.1'
+    repositories {
+        google()
+        jcenter()
+        maven { url "https://kotlin.bintray.com/kotlinx" }
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.1.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serializationVersion"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'idea'
+
+allprojects {
+    repositories {
+        mavenLocal()
+        google()
+        jcenter()
+        maven { url "https://kotlin.bintray.com/kotlinx" }
+    }
 }
 
-group 'com.lightningkite.kotlin.crossplatform'
-version '1.0-SNAPSHOT'
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

@@ -1,12 +1,4 @@
-package lk.kotlin.crossplatform.view
-
-
-import lk.kotlin.observable.list.ObservableList
-import lk.kotlin.observable.property.ConstantObservableProperty
-import lk.kotlin.observable.property.MutableObservableProperty
-import lk.kotlin.observable.property.ObservableProperty
-import lk.kotlin.observable.property.StackObservableProperty
-import java.util.*
+package com.lightningkite.kotlinx.ui
 
 interface ViewFactory<VIEW> {
 
@@ -156,6 +148,6 @@ interface ViewFactory<VIEW> {
     ): VIEW
 
     fun codeLayout(
-            vararg views: Pair<(ArrayList<Rectangle>) -> Rectangle, VIEW>
+            vararg views: Pair<(MutableList<Rectangle>) -> Rectangle, VIEW>
     ): VIEW
 }

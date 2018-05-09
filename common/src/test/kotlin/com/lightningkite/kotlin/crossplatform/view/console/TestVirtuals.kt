@@ -1,21 +1,16 @@
 package com.lightningkite.kotlin.crossplatform.view.console
 
-import lk.kotlin.crossplatform.view.*
-import lk.kotlin.crossplatform.view.Gravity
-import lk.kotlin.crossplatform.view.Image
-import lk.kotlin.crossplatform.view.Point
-import lk.kotlin.crossplatform.view.ViewFactory
-import lk.kotlin.crossplatform.view.virtual.VerticalView
-import lk.kotlin.crossplatform.view.virtual.VirtualViewFactory
-import lk.kotlin.observable.property.ObservableProperty
-import lk.kotlin.observable.property.StandardObservableProperty
-import lk.kotlin.observable.property.transform
-import org.junit.Test
+import com.lightningkite.kotlinx.ui.Gravity
+import com.lightningkite.kotlinx.ui.Image
+import com.lightningkite.kotlinx.ui.Point
+import com.lightningkite.kotlinx.ui.ViewFactory
+import com.lightningkite.kotlinx.ui.virtual.VerticalView
+import com.lightningkite.kotlinx.ui.virtual.VirtualViewFactory
 
 class TestVirtuals {
 
     class TestContent(
-            var image: Image = object : Image {},
+            var image: Image = Image.Bundled(""),
             var title:String = "Title",
             var body:String = "This is some body"
     )
