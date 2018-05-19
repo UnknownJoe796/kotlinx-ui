@@ -1,21 +1,32 @@
 package com.lightningkite.kotlinx.ui
 
-import com.lightningkite.kotlinx.locale.*
-import com.lightningkite.kotlinx.observable.property.*
-import com.lightningkite.kotlinx.observable.list.*
+import com.lightningkite.kotlinx.locale.Date
+import com.lightningkite.kotlinx.locale.DateTime
+import com.lightningkite.kotlinx.locale.Time
+import com.lightningkite.kotlinx.observable.list.ObservableList
+import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
+import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
+import com.lightningkite.kotlinx.observable.property.ObservableProperty
+import com.lightningkite.kotlinx.observable.property.StackObservableProperty
+import com.lightningkite.kotlinx.ui.color.Color
 
 interface ViewFactory<VIEW> {
+
+    //Theme
+
+    fun withColorSet(colorSet: ColorSet): ViewFactory<VIEW>
 
     //Navigation
 
     fun window(
-            stack: StackObservableProperty<() -> VIEW>,
-            tabs: List<Pair<TabItem, () -> VIEW>>,
+            stack: StackObservableProperty<ViewGenerator<VIEW>>,
+            tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
             actions: ObservableList<Pair<TabItem, ()->Unit>>
     ): VIEW
 
     fun pages(
-            vararg pageGenerator: () -> VIEW
+            page: MutableObservableProperty<Int>,
+            vararg pageGenerator: ViewGenerator<VIEW>
     ): VIEW
 
     fun tabs(
@@ -29,31 +40,24 @@ interface ViewFactory<VIEW> {
     fun <T> list(
             data: ObservableList<T>,
             onBottom: () -> Unit,
-            itemToType: (T) -> Int,
-            makeView: (type: Int, obs: ObservableProperty<T>) -> VIEW
+            makeView: (obs: ObservableProperty<T>) -> VIEW
     ): VIEW
 
-    fun <T> grid(
-            minItemSize: Float = Float.MAX_VALUE,
-            data: ObservableList<T>,
-            onBottom: () -> Unit = {},
-            itemToType: (T) -> Int,
-            makeView: (type: Int, obs: ObservableProperty<T>) -> VIEW
-    ): VIEW
+//    fun <T> grid(
+//            minItemSize: Float = Float.MAX_VALUE,
+//            data: ObservableList<T>,
+//            onBottom: () -> Unit = {},
+//            itemToType: (T) -> Int,
+//            makeView: (type: Int, obs: ObservableProperty<T>) -> VIEW
+//    ): VIEW
     
 
     //Display
 
-    fun header(
-            text: ObservableProperty<String>
-    ): VIEW
-
-    fun subheader(
-            text: ObservableProperty<String>
-    ): VIEW
-
-    fun body(
-            text: ObservableProperty<String>
+    fun text(
+            text: ObservableProperty<String>,
+            size: TextSize,
+            align: AlignPair = AlignPair.CenterLeft
     ): VIEW
 
     fun work(): VIEW
@@ -64,7 +68,12 @@ interface ViewFactory<VIEW> {
 
     fun image(
             minSize: Point,
+            scaleType: ImageScaleType,
             image: ObservableProperty<Image>
+    ): VIEW
+
+    fun web(
+            content: ObservableProperty<String>
     ): VIEW
 
 
@@ -82,13 +91,32 @@ interface ViewFactory<VIEW> {
             makeView: (obs: ObservableProperty<T>) -> VIEW
     ): VIEW
 
-    fun field(
+    fun textField(
             image: Image,
             hint: String,
             help: String,
-            type: InputType,
+            type: TextInputType,
             error: ObservableProperty<String>,
             text: MutableObservableProperty<String>
+    ): VIEW
+
+    fun textArea(
+            image: Image,
+            hint: String,
+            help: String,
+            type: TextInputType,
+            error: ObservableProperty<String>,
+            text: MutableObservableProperty<String>
+    ): VIEW
+
+    fun numberField(
+            image: Image,
+            hint: String,
+            help: String,
+            type: NumberInputType,
+            error: ObservableProperty<String>,
+            decimalPlaces: Int = 0,
+            value: MutableObservableProperty<Number?>
     ): VIEW
 
     fun datePicker(
@@ -96,20 +124,26 @@ interface ViewFactory<VIEW> {
     ): VIEW
 
     fun dateTimePicker(
-            observable: MutableObservableProperty<Date>
+            observable: MutableObservableProperty<DateTime>
     ): VIEW
 
     fun timePicker(
-            observable: MutableObservableProperty<Date>
+            observable: MutableObservableProperty<Time>
     ): VIEW
 
     fun slider(
-            steps: Int = Int.MAX_VALUE,
-            observable: MutableObservableProperty<Float>
+            range: IntRange,
+            observable: MutableObservableProperty<Int>
     ): VIEW
 
     fun toggle(
             observable: MutableObservableProperty<Boolean>
+    ): VIEW
+
+    fun toggleButton(
+            image: ObservableProperty<Image?> = ConstantObservableProperty(null),
+            label: ObservableProperty<String?> = ConstantObservableProperty(null),
+            value: MutableObservableProperty<Boolean>
     ): VIEW
 
 
@@ -137,21 +171,38 @@ interface ViewFactory<VIEW> {
             view: ObservableProperty<Pair<VIEW, Animation>>
     ): VIEW
 
+    fun space(size: Point): VIEW
+
     fun horizontal(
-            spacing: Float = 0f,
-            vararg views: Pair<Gravity, VIEW>
+            vararg views: Pair<PlacementPair, VIEW>
     ): VIEW
 
     fun vertical(
-            spacing: Float = 0f,
-            vararg views: Pair<Gravity, VIEW>
+            vararg views: Pair<PlacementPair, VIEW>
     ): VIEW
 
     fun frame(
-            vararg views: Pair<Gravity, VIEW>
+            vararg views: Pair<PlacementPair, VIEW>
     ): VIEW
 
-    fun codeLayout(
-            vararg views: Pair<(MutableList<Rectangle>) -> Rectangle, VIEW>
+
+    //Modifiers
+    fun background(
+            view: VIEW,
+            color: ObservableProperty<Color>
+    ): VIEW
+
+    fun card(
+            view: VIEW
+    ): VIEW
+
+    fun alpha(
+            view: VIEW,
+            alpha: ObservableProperty<Float>
+    ): VIEW
+
+    fun clickable(
+            view: VIEW,
+            onClick: () -> Unit
     ): VIEW
 }

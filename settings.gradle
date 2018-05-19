@@ -1,5 +1,6 @@
 include ':common'
-include ':view-swing'
-include ':view-android'
+include ':javafx'
 //include ':view-moe'
+include ':test-common'
+include ':test-javafx'
 

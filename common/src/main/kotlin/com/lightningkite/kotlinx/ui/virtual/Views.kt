@@ -1,9 +1,11 @@
 package com.lightningkite.kotlinx.ui.virtual
 
+import com.lightningkite.kotlinx.locale.Date
+import com.lightningkite.kotlinx.observable.list.ObservableList
+import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
+import com.lightningkite.kotlinx.observable.property.ObservableProperty
+import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.ui.*
-import com.lightningkite.kotlinx.observable.property.*
-import com.lightningkite.kotlinx.observable.list.*
-import com.lightningkite.kotlinx.locale.*
 
 
 class BodyView(var text: ObservableProperty<String>) : View()
@@ -23,21 +25,14 @@ class DatePickerView(var observable: MutableObservableProperty<Date>) : View()
 class DateTimePickerView(var observable: MutableObservableProperty<Date>) : View()
 
 
-class FieldView(var image: Image, var hint: kotlin.String, var help: kotlin.String, var type: InputType, var error: ObservableProperty<String>, var text: MutableObservableProperty<String>) : View()
+class FieldView(var image: Image, var hint: kotlin.String, var help: kotlin.String, var type: TextInputType, var error: ObservableProperty<String>, var text: MutableObservableProperty<String>) : View()
 
-
-class FrameView(var views: Array<out Pair<Gravity, View>>) : View()
 
 
 class GridView<T>(var minItemSize: Float, var data: ObservableList<T>, var itemToString: (T) -> kotlin.String, var onBottom: () -> Unit, var makeView: (type: kotlin.Int, obs: ObservableProperty<T>) -> View) : View()
 
 
 class HeaderView(var text: ObservableProperty<String>) : View()
-
-
-class HorizontalView(var spacing: Float, var views: Array<out Pair<Gravity, View>>) : ContainerView() {
-    override fun views() = views.map { it.second }
-}
 
 
 class ImageView(var minSize: Point, var image: ObservableProperty<Image>) : View()
@@ -98,11 +93,6 @@ class TimePickerView(var observable: MutableObservableProperty<Date>) : View()
 
 
 class ToggleView(var observable: MutableObservableProperty<Boolean>) : View()
-
-
-class VerticalView(var spacing: Float, var views: Array<out Pair<Gravity, View>>) : ContainerView() {
-    override fun views() = views.map { it.second }
-}
 
 
 class WindowView(var stack: StackObservableProperty<() -> View>, var tabs: List<Pair<TabItem, () -> View>>, var actions: ObservableList<TabItem>) : View()

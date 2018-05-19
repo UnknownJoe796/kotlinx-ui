@@ -1,0 +1,37 @@
+buildscript {
+
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.kotlinVersion}"
+    }
+}
+
+group 'com.lightningkite.kotlin.crossplatform'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'kotlin-platform-jvm'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${rootProject.kotlinVersion}"
+    testCompile "org.jetbrains.kotlin:kotlin-reflect:${rootProject.kotlinVersion}"
+    implementation "com.lightningkite.kotlinx:jvm:${rootProject.libraryVersion}"
+    expectedBy project(':common')
+    implementation 'com.jfoenix:jfoenix:9.0.3' // Java 9
+    implementation 'de.codecentric.centerdevice:javafxsvg:1.3.0' // Java 9
+
+    testImplementation 'junit:junit:4.12'
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}

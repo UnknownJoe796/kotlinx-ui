@@ -489,7 +489,7 @@ class MaterialViewFactory(val context: Context) : ViewFactory<View> {
             image: Image,
             hint: String,
             help: String,
-            type: InputType,
+            type: TextInputType,
             error: ObservableProperty<String>,
             text: MutableObservableProperty<String>
     ): View = TextInputLayout(context).apply {
@@ -518,19 +518,19 @@ class MaterialViewFactory(val context: Context) : ViewFactory<View> {
             setCompoundDrawables(null, null, null, null)
 
             inputType = when (type) {
-                InputType.Paragraph -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_SENTENCES or TYPE_TEXT_FLAG_MULTI_LINE
-                InputType.Name -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_WORDS or TYPE_TEXT_VARIATION_PERSON_NAME
-                InputType.Password -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_PASSWORD
-                InputType.Sentence -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_SENTENCES
-                InputType.CapitalizedIdentifier -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_CHARACTERS
-                InputType.Email -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_EMAIL_ADDRESS
-                InputType.URL -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_URI
-                InputType.Phone -> TYPE_CLASS_PHONE
-                InputType.Address -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_POSTAL_ADDRESS or TYPE_TEXT_FLAG_CAP_WORDS
-                InputType.Integer -> TYPE_CLASS_NUMBER or TYPE_NUMBER_FLAG_SIGNED
-                InputType.Float -> TYPE_CLASS_NUMBER or TYPE_NUMBER_FLAG_DECIMAL or TYPE_NUMBER_FLAG_SIGNED
-                InputType.PositiveInteger -> TYPE_CLASS_NUMBER
-                InputType.PositiveFloat -> TYPE_CLASS_NUMBER or TYPE_NUMBER_FLAG_DECIMAL
+                TextInputType.Paragraph -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_SENTENCES or TYPE_TEXT_FLAG_MULTI_LINE
+                TextInputType.Name -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_WORDS or TYPE_TEXT_VARIATION_PERSON_NAME
+                TextInputType.Password -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_PASSWORD
+                TextInputType.Sentence -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_SENTENCES
+                TextInputType.CapitalizedIdentifier -> TYPE_CLASS_TEXT or TYPE_TEXT_FLAG_CAP_CHARACTERS
+                TextInputType.Email -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_EMAIL_ADDRESS
+                TextInputType.URL -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_URI
+                TextInputType.Phone -> TYPE_CLASS_PHONE
+                TextInputType.Address -> TYPE_CLASS_TEXT or TYPE_TEXT_VARIATION_POSTAL_ADDRESS or TYPE_TEXT_FLAG_CAP_WORDS
+                TextInputType.Integer -> TYPE_CLASS_NUMBER or TYPE_NUMBER_FLAG_SIGNED
+                TextInputType.Float -> TYPE_CLASS_NUMBER or TYPE_NUMBER_FLAG_DECIMAL or TYPE_NUMBER_FLAG_SIGNED
+                TextInputType.PositiveInteger -> TYPE_CLASS_NUMBER
+                TextInputType.PositiveFloat -> TYPE_CLASS_NUMBER or TYPE_NUMBER_FLAG_DECIMAL
             }
 
         })

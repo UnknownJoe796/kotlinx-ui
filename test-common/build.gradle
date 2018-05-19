@@ -1,0 +1,33 @@
+
+
+buildscript {
+    ext.kotlin_version = rootProject.kotlinVersion
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.kotlinVersion}"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${rootProject.dokkaVersion}"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+    }
+}
+
+apply plugin: 'kotlin-platform-common'
+apply plugin: 'kotlinx-serialization'
+apply from: '../publishing.gradle'
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:${rootProject.serializationVersion}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-common:${rootProject.kotlinVersion}"
+    implementation "com.lightningkite.kotlinx:common:${rootProject.libraryVersion}"
+    implementation project(':common')
+    testImplementation "org.jetbrains.kotlin:kotlin-test-common:${rootProject.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-test-annotations-common:${rootProject.kotlinVersion}"
+}

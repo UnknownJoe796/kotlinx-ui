@@ -1,20 +1,17 @@
 package com.lightningkite.kotlinx.ui
 
-import com.lightningkite.kotlinx.locale.*
-import com.lightningkite.kotlinx.observable.property.*
-import com.lightningkite.kotlinx.observable.list.*
+import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
+import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
 
-fun <VIEW> ViewFactory<VIEW>.header(
+fun <VIEW> ViewFactory<VIEW>.text(
+        size: TextSize = TextSize.Body,
+        alignPair: AlignPair = AlignPair.CenterLeft,
         text: String
-): VIEW = header(ConstantObservableProperty(text))
-
-fun <VIEW> ViewFactory<VIEW>.subheader(
-        text: String
-): VIEW = subheader(ConstantObservableProperty(text))
-
-fun <VIEW> ViewFactory<VIEW>.body(
-        text: String
-): VIEW = body(ConstantObservableProperty(text))
+): VIEW = text(
+        text = ConstantObservableProperty(text),
+        size = size,
+        align = alignPair
+)
 
 fun <VIEW> ViewFactory<VIEW>.button(
         label: String,
@@ -26,6 +23,12 @@ fun <VIEW> ViewFactory<VIEW>.button(
         onClick: () -> Unit
 ): VIEW = button(image = ConstantObservableProperty(image), onClick = onClick)
 
+fun <VIEW> ViewFactory<VIEW>.button(
+        label: String,
+        image: Image,
+        onClick: () -> Unit
+): VIEW = button(label = ConstantObservableProperty(label), image = ConstantObservableProperty(image), onClick = onClick)
+
 fun <VIEW> ViewFactory<VIEW>.margin(
         margin: Float,
         view: VIEW
@@ -36,3 +39,8 @@ fun <VIEW> ViewFactory<VIEW>.margin(
         vertical: Float,
         view: VIEW
 ) = margin(horizontal, vertical, horizontal, vertical, view)
+
+fun <VIEW> ViewFactory<VIEW>.pagesEmbedded(
+        page: MutableObservableProperty<Int>,
+        vararg pageGenerators: () -> VIEW
+) = pages(page, *pageGenerators.map { ViewGenerator.make("", it) }.toTypedArray())

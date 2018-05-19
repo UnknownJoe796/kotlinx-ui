@@ -24,6 +24,7 @@ dependencies {
     implementation "com.lightningkite.kotlinx:jvm:${rootProject.libraryVersion}"
     expectedBy project(':common')
 
+    testImplementation 'junit:junit:4.12'
 }
 
 compileKotlin {

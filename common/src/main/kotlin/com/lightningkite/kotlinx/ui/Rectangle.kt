@@ -1,8 +1,18 @@
 package com.lightningkite.kotlinx.ui
 
 data class Rectangle(
-        val left: Float = 0f,
-        val top: Float = 0f,
-        val right: Float = 0f,
-        val bottom: Float = 0f
-)
+        var x: Float = 0f,
+        var y: Float = 0f,
+        var width: Float = 0f,
+        var height: Float = 0f
+) {
+    companion object {
+        fun fromAlignSize(position: Point, align: Point, size: Point, modify: Rectangle = Rectangle()): Rectangle {
+            modify.x = position.x - size.x * align.x
+            modify.y = position.y - size.y * align.y
+            modify.width = size.x
+            modify.height = size.y
+            return modify
+        }
+    }
+}
