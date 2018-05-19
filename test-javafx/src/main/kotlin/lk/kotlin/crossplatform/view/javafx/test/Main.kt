@@ -10,7 +10,7 @@ import lk.kotlin.crossplatform.view.javafx.MaterialJavaFxViewFactory
 
 class Main : Application() {
     override fun start(primaryStage: Stage) {
-        val maker = MaterialJavaFxViewFactory(Theme(), resourceFetcher = { javaClass.getResourceAsStream(it) })
+        val maker = MaterialJavaFxViewFactory(Theme.dark(), resourceFetcher = { javaClass.getResourceAsStream(it) }, scale = 2.0)
         val view = MainVG(maker).generate()
         primaryStage.scene = Scene(view as Parent)
         primaryStage.show()

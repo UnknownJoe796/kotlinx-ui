@@ -48,7 +48,8 @@ fun Node.lifecycleChildOf(parent: Node) {
 data class MaterialJavaFxViewFactory(
         val theme: Theme,
         val colorSet: ColorSet = theme.main,
-        val resourceFetcher: (String) -> InputStream
+        val resourceFetcher: (String) -> InputStream,
+        val scale: Double = 1.0
 ) : ViewFactory<Node> {
 
     init {
@@ -76,6 +77,14 @@ data class MaterialJavaFxViewFactory(
 </svg>
 """
     }
+
+    val TextSize.javafx
+        get() = when (this) {
+            TextSize.Tiny -> 10.0 * scale
+            TextSize.Body -> 14.0 * scale
+            TextSize.Subheader -> 18.0 * scale
+            TextSize.Header -> 24.0 * scale
+        }
 
     fun <T> ObservableProperty<Boolean>.bindBidirectional(kotlinx: MutableObservableProperty<T>, property: Property<T>) {
         bind(kotlinx) {
@@ -180,57 +189,51 @@ data class MaterialJavaFxViewFactory(
             tabs: List<Pair<TabItem, ViewGenerator<Node>>>,
             actions: ObservableList<Pair<TabItem, () -> Unit>>
     ) = with(this.copy(colorSet = theme.bar)) {
-        background(
-                if (tabs.isEmpty()) {
-                    vertical(
-                            PlacementPair.topFill to horizontal(
-                                    PlacementPair.centerLeft to alpha(
-                                            imageButton(ConstantObservableProperty(Image.EmbeddedSVG(embeddedBackButton(colorSet.foreground))), { stack.popOrFalse() }),
-                                            stack.transform { if (stack.stack.size > 1) 1f else 0f }
-                                    ),
-                                    PlacementPair.centerLeft to text(text = stack.transform { it.title }, size = TextSize.Header),
-                                    PlacementPair.fillFill to space(Point(5f, 5f)),
-                                    PlacementPair.centerRight to swap(actions.onUpdate.transform {
-                                        val items = it.map {
-                                            PlacementPair.centerCenter to button(it.first.text, it.first.image) { it.second.invoke() }
-                                        }
-                                        horizontal(
-                                                *items.toTypedArray()
-                                        ) to Animation.Fade
-                                    })
-                            ),
+
+        vertical(
+                PlacementPair.topFill to background(
+                        horizontal(
+                                PlacementPair.centerLeft to alpha(
+                                        imageButton(ConstantObservableProperty(Image.EmbeddedSVG(embeddedBackButton(colorSet.foreground))), { stack.popOrFalse() }),
+                                        stack.transform { if (stack.stack.size > 1) 1f else 0f }
+                                ),
+                                PlacementPair.centerLeft to text(text = stack.transform { it.title }, size = TextSize.Header),
+                                PlacementPair.fillFill to space(Point(5f, 5f)),
+                                PlacementPair.centerRight to swap(actions.onUpdate.transform {
+                                    val items = it.map {
+                                        PlacementPair.centerCenter to button(it.first.text, it.first.image) { it.second.invoke() }
+                                    }
+                                    horizontal(
+                                            *items.toTypedArray()
+                                    ) to Animation.Fade
+                                })
+                        ),
+                        ConstantObservableProperty(colorSet.background)
+                ).apply {
+                    effect = DropShadow(2.0 * scale, 0.0, 2.0 * scale, Color.black.toJavaFX())
+                },
+
+                PlacementPair.fillFill to if (tabs.isEmpty()) {
+                    with(this@MaterialJavaFxViewFactory) {
+                        background(
+                                swap(stack.withAnimations().transform { it.first.generate() to it.second }),
+                                ConstantObservableProperty(colorSet.background)
+                        )
+                    }
+                } else {
+                    horizontal(
+                            PlacementPair.fillLeft to scroll(vertical(
+                                    //TODO
+                            )),
                             PlacementPair.fillFill to with(this@MaterialJavaFxViewFactory) {
-                                swap(stack.withAnimations().transform { it.first.generate() to it.second })
+                                background(
+                                        swap(stack.withAnimations().transform { it.first.generate() to it.second }),
+                                        ConstantObservableProperty(colorSet.background)
+                                )
                             }
                     )
-                } else {
-                    vertical(
-                            PlacementPair.topFill to horizontal(
-                                    PlacementPair.centerLeft to text(text = stack.transform { it.title }, size = TextSize.Header),
-                                    PlacementPair.fillFill to space(Point(5f, 5f)),
-                                    PlacementPair.centerRight to swap(actions.onUpdate.transform {
-                                        val items = it.map {
-                                            PlacementPair.centerCenter to button(it.first.text, it.first.image) { it.second.invoke() }
-                                        }
-                                        horizontal(
-                                                *items.toTypedArray()
-                                        ) to Animation.Fade
-                                    })
-                            ),
-                            PlacementPair.fillFill to horizontal(
-                                    PlacementPair.fillLeft to scroll(vertical(
-                                            //TODO
-                                    )),
-                                    PlacementPair.fillFill to with(this@MaterialJavaFxViewFactory) {
-                                        swap(stack.withAnimations().transform { it.first.generate() to it.second })
-                                    }
-                            )
-                    )
-                },
-                ConstantObservableProperty(colorSet.background)
-        ).apply {
-            effect = DropShadow(2.0, 0.0, 2.0, Color.black.toJavaFX())
-        }
+                }
+        )
     }
 
     override fun pages(
@@ -295,8 +298,75 @@ data class MaterialJavaFxViewFactory(
             data: ObservableList<T>,
             onBottom: () -> Unit,
             makeView: (obs: ObservableProperty<T>) -> Node
+    ) = listVerticalImpl(data, onBottom, makeView)
+
+    private data class RecycleableView<T>(
+            val node: Node,
+            val observable: MutableObservableProperty<T>
+    )
+
+    fun <T> listVerticalImpl(
+            data: ObservableList<T>,
+            onBottom: () -> Unit,
+            makeView: (obs: ObservableProperty<T>) -> Node
+    ) = scroll(VBox().apply {
+        val parent = this
+        maxWidth = Double.MAX_VALUE
+        maxHeight = Double.MAX_VALUE
+        background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii.EMPTY, Insets.EMPTY))
+
+        var usedViews = ArrayList<RecycleableView<T>>()
+        var unusedViews = ArrayList<RecycleableView<T>>()
+        fun reqView(forItem: T): RecycleableView<T> {
+            if (unusedViews.isNotEmpty()) {
+                return unusedViews.removeAt(unusedViews.lastIndex).also {
+                    it.observable.value = forItem
+                    usedViews.add(it)
+                    children.add(it.node)
+                    it.node.lifecycle.on()
+                }
+            }
+            val obs = StandardObservableProperty<T>(forItem)
+            val view = makeView(obs)
+            (view as? Region)?.maxWidth = Double.MAX_VALUE
+            view.lifecycleChildOf(this)
+            val sum = RecycleableView(view, obs)
+            usedViews.add(sum)
+            children.add(view)
+            return sum
+        }
+
+        fun recycleView(v: RecycleableView<T>) {
+            v.node.lifecycle.off()
+            usedViews.remove(v)
+            unusedViews.add(v)
+            children.remove(v.node)
+        }
+
+        fun recycleAll() {
+            for (item in usedViews) {
+                item.node.lifecycle.off()
+            }
+            unusedViews = usedViews
+            usedViews = ArrayList()
+            children.clear()
+        }
+
+        lifecycle.bind(data.onUpdate) {
+            recycleAll()
+            it.forEach {
+                reqView(it)
+            }
+        }
+    })
+
+    fun <T> listViewImpl(
+            data: ObservableList<T>,
+            onBottom: () -> Unit,
+            makeView: (obs: ObservableProperty<T>) -> Node
     ) = JFXListView<T>().apply {
         items = data.asJavaFX(lifecycle)
+        background = Background.EMPTY
 
         selectionModel = NoSelectionModel()
 
@@ -309,6 +379,7 @@ data class MaterialJavaFxViewFactory(
                     mainView.lifecycleChildOf(this@apply)
                     contentDisplay = ContentDisplay.GRAPHIC_ONLY
                     background = Background.EMPTY
+                    (mainView as? Region)?.maxWidth = Double.MAX_VALUE
                     graphic = mainView
                 }
 
@@ -328,10 +399,10 @@ data class MaterialJavaFxViewFactory(
     override fun work() = JFXSpinner().apply {
         style = "-fx-stroke: ${colorSet.foreground.toWeb()}"
         isVisible = true
-        minWidth = 30.0
-        minHeight = 30.0
-        prefWidth = 30.0
-        prefHeight = 30.0
+        minWidth = 30.0 * scale
+        minHeight = 30.0 * scale
+        prefWidth = 30.0 * scale
+        prefHeight = 30.0 * scale
     }
 
     override fun progress(observable: ObservableProperty<Float>) = JFXProgressBar().apply {
@@ -342,8 +413,8 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun image(minSize: Point, scaleType: ImageScaleType, image: ObservableProperty<Image>) = ImageView().apply {
-        this.fitWidth = minSize.x.toDouble()
-        this.fitHeight = minSize.y.toDouble()
+        this.fitWidth = minSize.x.times(scale)
+        this.fitHeight = minSize.y.times(scale)
         lifecycle.bind(image) {
             Thread {
                 val javafx = when (it) {
@@ -367,6 +438,7 @@ data class MaterialJavaFxViewFactory(
         this.buttonType = JFXButton.ButtonType.RAISED
         background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii.EMPTY, Insets.EMPTY))
         textFill = colorSet.foreground.toJavaFX()
+        font = Font.font(TextSize.Body.javafx)
         lifecycle.bind(label) {
             text = it
         }
@@ -554,11 +626,16 @@ data class MaterialJavaFxViewFactory(
     override fun scroll(view: Node) = ScrollPane(view).apply {
         hbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
         vbarPolicy = ScrollPane.ScrollBarPolicy.AS_NEEDED
+        isFitToWidth = true
+        isFitToHeight = true
+        maxWidth = Double.MAX_VALUE
+        maxHeight = Double.MAX_VALUE
+        background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii.EMPTY, Insets.EMPTY))
     }
 
     override fun margin(left: Float, top: Float, right: Float, bottom: Float, view: Node) = StackPane().apply {
         children += view
-        StackPane.setMargin(view, Insets(top.toDouble(), right.toDouble(), bottom.toDouble(), left.toDouble()))
+        StackPane.setMargin(view, Insets(top.times(scale), right.times(scale), bottom.times(scale), left.times(scale)))
     }
 
     override fun swap(view: ObservableProperty<Pair<Node, Animation>>) = StackPane().apply {
@@ -601,8 +678,8 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun space(size: Point) = Region().apply {
-        prefWidth = size.x.toDouble()
-        prefHeight = size.y.toDouble()
+        prefWidth = size.x.times(scale)
+        prefHeight = size.y.times(scale)
     }
 
     override fun web(content: ObservableProperty<String>) = WebView().apply {
@@ -624,9 +701,9 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun card(view: Node): Node = frame(PlacementPair.fillFill to view).apply {
-        background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii(4.0), Insets.EMPTY))
-        effect = DropShadow(3.0, 0.0, 1.0, Color.black.copy(alpha = .5f).toJavaFX())
-        padding = Insets(8.0)
+        background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii(4.0 * scale), Insets.EMPTY))
+        effect = DropShadow(3.0 * scale, 0.0, 1.0 * scale, Color.black.copy(alpha = .5f).toJavaFX())
+        padding = Insets(8.0 * scale)
     }
 
     override fun alpha(view: Node, alpha: ObservableProperty<Float>) = view.apply {

@@ -9,12 +9,23 @@ data class Theme(
 ) {
 
     companion object {
-//        fun light(
-//                primaryColor:Color = Color.fromInt(0xFF6200EE.toInt()),
-//                secondaryColor:Color = Color.fromInt(0xFF03DAC6.toInt())
-//        ) = Theme(
-//                ColorSet(),
-//        )
+        fun light(
+                primaryColor: Color = Color.fromInt(0xFF6200EE.toInt()),
+                secondaryColor: Color = Color.fromInt(0xFF03DAC6.toInt())
+        ) = Theme(
+                main = ColorSet.basedOnBack(Color.white),
+                bar = ColorSet.basedOnBack(primaryColor),
+                accent = ColorSet.basedOnBack(secondaryColor)
+        )
+
+        fun dark(
+                primaryColor: Color = Color.fromInt(0xFF6200EE.toInt()),
+                secondaryColor: Color = Color.fromInt(0xFF03DAC6.toInt())
+        ) = Theme(
+                main = ColorSet.basedOnBack(Color.gray(.1f)),
+                bar = ColorSet.basedOnBack(primaryColor),
+                accent = ColorSet.basedOnBack(secondaryColor)
+        )
     }
 
 }

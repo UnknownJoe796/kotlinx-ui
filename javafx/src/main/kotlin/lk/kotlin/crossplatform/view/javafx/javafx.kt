@@ -3,7 +3,6 @@ package lk.kotlin.crossplatform.view.javafx
 import com.lightningkite.kotlinx.ui.AlignPair
 import com.lightningkite.kotlinx.ui.Animation
 import com.lightningkite.kotlinx.ui.Point
-import com.lightningkite.kotlinx.ui.TextSize
 import com.lightningkite.kotlinx.ui.color.Color
 import javafx.animation.FadeTransition
 import javafx.animation.ScaleTransition
@@ -13,13 +12,6 @@ import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.util.Duration
 
-val TextSize.javafx
-    get() = when (this) {
-        TextSize.Tiny -> 10.0
-        TextSize.Body -> 14.0
-        TextSize.Subheader -> 18.0
-        TextSize.Header -> 24.0
-    }
 val AlignPair.javafx
     get() = when (this) {
         AlignPair.TopLeft -> Pos.TOP_LEFT
