@@ -11,8 +11,7 @@ import com.lightningkite.kotlinx.observable.property.*
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
 import com.lightningkite.kotlinx.ui.*
 import com.lightningkite.kotlinx.ui.color.Color
-import com.lightningkite.kotlinx.ui.helper.AnyLifecycles
-import com.lightningkite.kotlinx.ui.helper.TreeObservableProperty
+import com.lightningkite.kotlinx.ui.helper.*
 import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory
 import javafx.application.Platform
 import javafx.beans.property.Property
@@ -34,20 +33,18 @@ import java.io.InputStream
 import java.text.DecimalFormat
 import java.time.LocalDate
 import java.time.LocalTime
+import java.util.*
 
 var Node.lifecycle
     get() = AnyLifecycles.getOrPut(this) { TreeObservableProperty() }
     set(value) {
         AnyLifecycles[this] = value
     }
-
-fun Node.lifecycleChildOf(parent: Node) {
-    this.lifecycle.parent = parent.lifecycle
-}
+private val desiredMargins = WeakHashMap<Node, Insets>()
 
 data class MaterialJavaFxViewFactory(
-        val theme: Theme,
-        val colorSet: ColorSet = theme.main,
+        override val theme: Theme,
+        override val colorSet: ColorSet = theme.main,
         val resourceFetcher: (String) -> InputStream,
         val scale: Double = 1.0
 ) : ViewFactory<Node> {
@@ -57,26 +54,6 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun withColorSet(colorSet: ColorSet): ViewFactory<Node> = copy(colorSet = colorSet)
-
-    companion object {
-        fun embeddedBackButton(color: Color): String = """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-    <path d="M0 0h24v24H0z" fill="none"/>
-    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="${color.toAlphalessWeb()}"/>
-</svg>
-"""
-
-        fun embeddedLeft(color: Color): String = """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="${color.toAlphalessWeb()}"/>
-    <path d="M0 0h24v24H0z" fill="none"/>
-</svg>
-"""
-
-        fun embeddedRight(color: Color): String = """<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="${color.toAlphalessWeb()}"/>
-    <path d="M0 0h24v24H0z" fill="none"/>
-</svg>
-"""
-    }
 
     val TextSize.javafx
         get() = when (this) {
@@ -118,9 +95,18 @@ data class MaterialJavaFxViewFactory(
 //        SvgImageLoaderFactory.install(PrimitiveDimensionProvider());
     }
 
-    override fun text(text: ObservableProperty<String>, size: TextSize, align: AlignPair) = Label().apply {
+    override fun text(
+            text: ObservableProperty<String>,
+            style: TextStyle,
+            size: TextSize,
+            align: AlignPair
+    ): Node = Label().apply {
         font = Font.font(size.javafx)
-        textFill = colorSet.foreground.toJavaFX()
+        textFill = when (style) {
+            TextStyle.Normal -> colorSet.foreground.toJavaFX()
+            TextStyle.Danger -> Color.red.toJavaFX()
+            TextStyle.Faded -> colorSet.foregroundDisabled.toJavaFX()
+        }
         alignment = align.javafx
         lifecycle.bind(text) {
             this.text = it
@@ -131,7 +117,7 @@ data class MaterialJavaFxViewFactory(
         val parent = this
         for ((placement, view) in views) {
             children += frame(PlacementPair(Placement.fill, placement.vertical) to view).apply {
-                lifecycleChildOf(parent)
+                this.lifecycle.parent = parent.lifecycle
                 maxHeight = Double.MAX_VALUE
                 if (placement.horizontal.align == Align.Fill) {
                     maxWidth = Double.MAX_VALUE
@@ -145,7 +131,7 @@ data class MaterialJavaFxViewFactory(
         val parent = this
         for ((placement, view) in views) {
             children += frame(PlacementPair(placement.horizontal, Placement.fill) to view).apply {
-                lifecycleChildOf(parent)
+                this.lifecycle.parent = parent.lifecycle
                 maxWidth = Double.MAX_VALUE
                 if (placement.vertical.align == Align.Fill) {
                     maxHeight = Double.MAX_VALUE
@@ -159,8 +145,9 @@ data class MaterialJavaFxViewFactory(
         val parent = this
         for ((placement, view) in views) {
             children += view.apply {
-                lifecycleChildOf(parent)
+                this.lifecycle.parent = parent.lifecycle
                 StackPane.setAlignment(view, placement.alignPair.javafx)
+                desiredMargins[this]?.let { StackPane.setMargin(this, it) }
                 (this as? Region)?.let {
                     if (placement.vertical.align == Align.Fill) {
                         it.maxHeight = Double.MAX_VALUE
@@ -177,8 +164,11 @@ data class MaterialJavaFxViewFactory(
             image: ObservableProperty<Image>,
             onClick: () -> Unit
     ) = JFXButton().apply {
+        val parent = this
         contentDisplay = ContentDisplay.GRAPHIC_ONLY
-        graphic = image(Point(32f, 32f), ImageScaleType.Fill, image)
+        graphic = image(Point(32f, 32f), ImageScaleType.Fill, image).apply {
+            this.lifecycle.parent = parent.lifecycle
+        }
         setOnAction {
             onClick.invoke()
         }
@@ -188,80 +178,12 @@ data class MaterialJavaFxViewFactory(
             stack: StackObservableProperty<ViewGenerator<Node>>,
             tabs: List<Pair<TabItem, ViewGenerator<Node>>>,
             actions: ObservableList<Pair<TabItem, () -> Unit>>
-    ) = with(this.copy(colorSet = theme.bar)) {
-
-        vertical(
-                PlacementPair.topFill to background(
-                        horizontal(
-                                PlacementPair.centerLeft to alpha(
-                                        imageButton(ConstantObservableProperty(Image.EmbeddedSVG(embeddedBackButton(colorSet.foreground))), { stack.popOrFalse() }),
-                                        stack.transform { if (stack.stack.size > 1) 1f else 0f }
-                                ),
-                                PlacementPair.centerLeft to text(text = stack.transform { it.title }, size = TextSize.Header),
-                                PlacementPair.fillFill to space(Point(5f, 5f)),
-                                PlacementPair.centerRight to swap(actions.onUpdate.transform {
-                                    val items = it.map {
-                                        PlacementPair.centerCenter to button(it.first.text, it.first.image) { it.second.invoke() }
-                                    }
-                                    horizontal(
-                                            *items.toTypedArray()
-                                    ) to Animation.Fade
-                                })
-                        ),
-                        ConstantObservableProperty(colorSet.background)
-                ).apply {
-                    effect = DropShadow(2.0 * scale, 0.0, 2.0 * scale, Color.black.toJavaFX())
-                },
-
-                PlacementPair.fillFill to if (tabs.isEmpty()) {
-                    with(this@MaterialJavaFxViewFactory) {
-                        background(
-                                swap(stack.withAnimations().transform { it.first.generate() to it.second }),
-                                ConstantObservableProperty(colorSet.background)
-                        )
-                    }
-                } else {
-                    horizontal(
-                            PlacementPair.fillLeft to scroll(vertical(
-                                    //TODO
-                            )),
-                            PlacementPair.fillFill to with(this@MaterialJavaFxViewFactory) {
-                                background(
-                                        swap(stack.withAnimations().transform { it.first.generate() to it.second }),
-                                        ConstantObservableProperty(colorSet.background)
-                                )
-                            }
-                    )
-                }
-        )
-    }
+    ) = defaultLargeWindow(stack, tabs, actions)
 
     override fun pages(
             page: MutableObservableProperty<Int>,
             vararg pageGenerator: ViewGenerator<Node>
-    ): Node = vertical(
-            PlacementPair.fillFill to run {
-                var previous = page.value
-                swap(page.transform {
-                    val anim = when {
-                        page.value < previous -> Animation.Pop
-                        page.value > previous -> Animation.Push
-                        else -> Animation.Fade
-                    }
-                    previous = it
-                    pageGenerator[it.coerceIn(pageGenerator.indices)].generate() to anim
-                })
-            },
-            PlacementPair.bottomFill to frame(
-                    PlacementPair.bottomLeft to imageButton(ConstantObservableProperty(Image.EmbeddedSVG(embeddedLeft(colorSet.foreground))), {
-                        page.value = page.value.minus(1).coerceIn(pageGenerator.indices)
-                    }),
-                    PlacementPair.bottomCenter to text(text = page.transform { "${it + 1} / ${pageGenerator.size}" }, size = TextSize.Tiny),
-                    PlacementPair.bottomRight to imageButton(ConstantObservableProperty(Image.EmbeddedSVG(embeddedRight(colorSet.foreground))), {
-                        page.value = page.value.plus(1).coerceIn(pageGenerator.indices)
-                    })
-            )
-    )
+    ): Node = defaultPages(page, *pageGenerator)
 
     override fun tabs(
             options: ObservableList<TabItem>,
@@ -323,13 +245,13 @@ data class MaterialJavaFxViewFactory(
                     it.observable.value = forItem
                     usedViews.add(it)
                     children.add(it.node)
-                    it.node.lifecycle.on()
+                    it.node.lifecycle.parent = parent.lifecycle
                 }
             }
             val obs = StandardObservableProperty<T>(forItem)
             val view = makeView(obs)
+            view.lifecycle.parent = parent.lifecycle
             (view as? Region)?.maxWidth = Double.MAX_VALUE
-            view.lifecycleChildOf(this)
             val sum = RecycleableView(view, obs)
             usedViews.add(sum)
             children.add(view)
@@ -337,7 +259,7 @@ data class MaterialJavaFxViewFactory(
         }
 
         fun recycleView(v: RecycleableView<T>) {
-            v.node.lifecycle.off()
+            lifecycle.parent = null
             usedViews.remove(v)
             unusedViews.add(v)
             children.remove(v.node)
@@ -345,7 +267,7 @@ data class MaterialJavaFxViewFactory(
 
         fun recycleAll() {
             for (item in usedViews) {
-                item.node.lifecycle.off()
+                lifecycle.parent = null
             }
             unusedViews = usedViews
             usedViews = ArrayList()
@@ -376,7 +298,7 @@ data class MaterialJavaFxViewFactory(
                 val mainView = makeView(obs)
 
                 init {
-                    mainView.lifecycleChildOf(this@apply)
+                    mainView.lifecycle.parent = this@apply.lifecycle
                     contentDisplay = ContentDisplay.GRAPHIC_ONLY
                     background = Background.EMPTY
                     (mainView as? Region)?.maxWidth = Double.MAX_VALUE
@@ -396,20 +318,36 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun work() = JFXSpinner().apply {
-        style = "-fx-stroke: ${colorSet.foreground.toWeb()}"
-        isVisible = true
-        minWidth = 30.0 * scale
-        minHeight = 30.0 * scale
-        prefWidth = 30.0 * scale
-        prefHeight = 30.0 * scale
+    override fun work(view: Node, isWorking: ObservableProperty<Boolean>): Node {
+        val spinner = JFXSpinner().apply {
+            style = "-fx-stroke: ${colorSet.foreground.toWeb()}"
+            isVisible = true
+            minWidth = 30.0 * scale
+            minHeight = 30.0 * scale
+            prefWidth = 30.0 * scale
+            prefHeight = 30.0 * scale
+        }
+        return swap(
+                view = isWorking.transform {
+                    val nextView = if (it) spinner else view
+                    nextView to Animation.Fade
+                }
+        )
     }
 
-    override fun progress(observable: ObservableProperty<Float>) = JFXProgressBar().apply {
-        style = "-fx-stroke: ${colorSet.foreground.toWeb()}"
-        lifecycle.bind(observable) {
-            progress = it.toDouble()
+    override fun progress(view: Node, progress: ObservableProperty<Float>): Node {
+        val bar = JFXProgressBar().apply {
+            style = "-fx-stroke: ${colorSet.foreground.toWeb()}"
+            lifecycle.bind(progress) {
+                this.progress = it.toDouble()
+            }
         }
+        return swap(
+                view = progress.transform {
+                    val nextView = if (it == 1f) view else bar
+                    nextView to Animation.Fade
+                }
+        )
     }
 
     override fun image(minSize: Point, scaleType: ImageScaleType, image: ObservableProperty<Image>) = ImageView().apply {
@@ -447,7 +385,15 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun toggleButton(
+    override fun entryContext(
+            label: String,
+            help: String?,
+            icon: Image?,
+            feedback: ObservableProperty<Pair<TextStyle, String>?>,
+            field: Node
+    ): Node = defaultEntryContext(label, help, icon, feedback, field)
+
+    fun toggleButton(
             image: ObservableProperty<Image?>,
             label: ObservableProperty<String?>,
             value: MutableObservableProperty<Boolean>
@@ -494,50 +440,39 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun textField(
-            image: Image,
-            hint: String,
-            help: String,
-            type: TextInputType,
-            error: ObservableProperty<String>,
-            text: MutableObservableProperty<String>
-    ): Node =
-            if (type == TextInputType.Password) JFXTextField().apply {
+    override fun textField(text: MutableObservableProperty<String>, placeholder: String, type: TextInputType): Node =
+            if (type == TextInputType.Password) JFXPasswordField().apply {
+                font = Font.font(TextSize.Body.javafx)
+                this.style = "-fx-text-fill: ${colorSet.foreground.toWeb()}"
                 this.focusColor = colorSet.foregroundHighlighted.toJavaFX()
                 this.unFocusColor = colorSet.foreground.toJavaFX()
                 lifecycle.bindBidirectional(text, this.textProperty())
                 this.isLabelFloat = true
-                this.promptText = hint
-            }
-            else JFXPasswordField().apply {
+            } else JFXTextField().apply {
+                font = Font.font(TextSize.Body.javafx)
+                this.style = "-fx-text-fill: ${colorSet.foreground.toWeb()}"
+                this.focusColor = colorSet.foregroundHighlighted.toJavaFX()
+                this.unFocusColor = colorSet.foreground.toJavaFX()
                 lifecycle.bindBidirectional(text, this.textProperty())
                 this.isLabelFloat = true
-                this.promptText = hint
             }
 
-
-    override fun textArea(
-            image: Image,
-            hint: String,
-            help: String,
-            type: TextInputType,
-            error: ObservableProperty<String>,
-            text: MutableObservableProperty<String>
-    ) = JFXTextArea().apply {
+    override fun textArea(text: MutableObservableProperty<String>, placeholder: String, type: TextInputType): Node = JFXTextArea().apply {
+        font = Font.font(TextSize.Body.javafx)
+        this.style = "-fx-text-fill: ${colorSet.foreground.toWeb()}"
+        this.focusColor = colorSet.foregroundHighlighted.toJavaFX()
+        this.unFocusColor = colorSet.foreground.toJavaFX()
         lifecycle.bindBidirectional(text, this.textProperty())
         this.isLabelFloat = true
-        this.promptText = hint
+        minHeight = scale * 100.0
     }
 
-    override fun numberField(
-            image: Image,
-            hint: String,
-            help: String,
-            type: NumberInputType,
-            error: ObservableProperty<String>,
-            decimalPlaces: Int,
-            value: MutableObservableProperty<Number?>
-    ) = JFXTextField().apply {
+    override fun numberField(value: MutableObservableProperty<Number?>, placeholder: String, type: NumberInputType, decimalPlaces: Int): Node = JFXTextField().apply {
+        font = Font.font(TextSize.Body.javafx)
+        this.style = "-fx-text-fill: ${colorSet.foreground.toWeb()}"
+        this.focusColor = colorSet.foregroundHighlighted.toJavaFX()
+        this.unFocusColor = colorSet.foreground.toJavaFX()
+
         val compareVal = Math.pow(-decimalPlaces.toDouble(), 10.0) / 2
         val converter = object : StringConverter<Number>() {
             override fun toString(value: Number?): String = if (value == null) "" else DecimalFormat("#." + "#".repeat(decimalPlaces)).format(value)
@@ -569,10 +504,12 @@ data class MaterialJavaFxViewFactory(
             }
         }
         this.isLabelFloat = true
-        this.promptText = hint
     }
 
     override fun datePicker(observable: MutableObservableProperty<Date>) = JFXDatePicker().apply {
+        this.editor.font = Font.font(TextSize.Body.javafx)
+        this.editor.style = "-fx-text-fill: ${colorSet.foreground.toWeb()}"
+        this.defaultColor = colorSet.foreground.toJavaFX()
         this.value = LocalDate.ofEpochDay(observable.value.daysSinceEpoch.toLong())
         lifecycle.bindBidirectional<LocalDate>(
                 kotlinx = observable.transform(
@@ -583,11 +520,12 @@ data class MaterialJavaFxViewFactory(
         )
     }
 
-    override fun dateTimePicker(observable: MutableObservableProperty<DateTime>): Node = vertical(
+    override fun dateTimePicker(observable: MutableObservableProperty<DateTime>): Node = horizontal(
             PlacementPair.topFill to datePicker(observable = observable.transform(
                     mapper = { it.date },
                     reverseMapper = { observable.value.copy(date = it) }
             )),
+            PlacementPair.topFill to space(Point(8f, 8f)),
             PlacementPair.topFill to timePicker(observable = observable.transform(
                     mapper = { it.time },
                     reverseMapper = { observable.value.copy(time = it) }
@@ -595,6 +533,9 @@ data class MaterialJavaFxViewFactory(
     )
 
     override fun timePicker(observable: MutableObservableProperty<Time>) = JFXTimePicker().apply {
+        this.editor.font = Font.font(TextSize.Body.javafx)
+        this.editor.style = "-fx-text-fill: ${colorSet.foreground.toWeb()}"
+        this.defaultColor = colorSet.foreground.toJavaFX()
         this.value = LocalTime.ofNanoOfDay(observable.value.millisecondsSinceMidnight.times(1000000L))
         lifecycle.bindBidirectional<LocalTime>(
                 kotlinx = observable.transform(
@@ -620,7 +561,7 @@ data class MaterialJavaFxViewFactory(
 
     override fun refresh(contains: Node, working: ObservableProperty<Boolean>, onRefresh: () -> Unit): Node = frame(
             PlacementPair.fillFill to contains,
-            PlacementPair.topRight to alpha(work(), working.transform { if (it) 1f else 0f })
+            PlacementPair.topRight to work(space(Point(20f, 20f)), working)
     )
 
     override fun scroll(view: Node) = ScrollPane(view).apply {
@@ -630,12 +571,8 @@ data class MaterialJavaFxViewFactory(
         isFitToHeight = true
         maxWidth = Double.MAX_VALUE
         maxHeight = Double.MAX_VALUE
-        background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii.EMPTY, Insets.EMPTY))
-    }
-
-    override fun margin(left: Float, top: Float, right: Float, bottom: Float, view: Node) = StackPane().apply {
-        children += view
-        StackPane.setMargin(view, Insets(top.times(scale), right.times(scale), bottom.times(scale), left.times(scale)))
+        style = "-fx-background-color: transparent; -fx-background: transparent;"
+        view.lifecycle.parent = this.lifecycle
     }
 
     override fun swap(view: ObservableProperty<Pair<Node, Animation>>) = StackPane().apply {
@@ -659,14 +596,16 @@ data class MaterialJavaFxViewFactory(
             currentView?.let { old ->
                 animation.javaFxOut(old, containerSize).apply {
                     setOnFinished {
+                        old.lifecycle.parent = null
                         children.remove(old)
                     }
                 }.play()
             }
 
             children += view.apply {
-                lifecycleChildOf(parent)
+                this.lifecycle.parent = parent.lifecycle
                 StackPane.setAlignment(view, AlignPair.CenterCenter.javafx)
+                desiredMargins[this]?.let { StackPane.setMargin(this, it) }
                 if (currentView != null) {
                     animation.javaFxIn(this, containerSize).play()
                 }
@@ -692,7 +631,13 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun background(view: Node, color: ObservableProperty<Color>) = view.apply {
+
+    override fun Node.margin(left: Float, top: Float, right: Float, bottom: Float) = this.apply {
+        desiredMargins[this] = Insets(top.toDouble(), right.toDouble(), bottom.toDouble(), left.toDouble())
+    }
+
+
+    override fun Node.background(color: ObservableProperty<Color>) = this.apply {
         if (this is Region) {
             lifecycle.bind(color) {
                 this.background = Background(BackgroundFill(it.toJavaFX(), CornerRadii.EMPTY, Insets.EMPTY))
@@ -706,16 +651,18 @@ data class MaterialJavaFxViewFactory(
         padding = Insets(8.0 * scale)
     }
 
-    override fun alpha(view: Node, alpha: ObservableProperty<Float>) = view.apply {
+    override fun Node.alpha(alpha: ObservableProperty<Float>) = this.apply {
         lifecycle.bind(alpha) {
             this.opacity = it.toDouble()
             isVisible = it != 0f
         }
     }
 
-    override fun clickable(view: Node, onClick: () -> Unit) = view.apply {
+    override fun Node.clickable(onClick: () -> Unit) = this.apply {
         setOnMouseClicked {
             onClick.invoke()
         }
     }
+
+
 }

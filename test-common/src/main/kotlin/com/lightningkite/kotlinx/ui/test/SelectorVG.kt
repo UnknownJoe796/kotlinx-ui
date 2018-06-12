@@ -13,12 +13,14 @@ class SelectorVG<VIEW>(
     override val title: String = "KotlinX UI Test"
 
     val tests = observableListOf(
+            "Space Test" to { SpaceTestVG(factory) },
             "Original Test" to { OriginalTestVG(factory) },
             "Alpha" to { AlphaTestVG(factory) },
             "Horizontal" to { HorizontalVG(factory) },
             "Pages" to { PagesVG(factory) },
             "Frame" to { FrameVG(factory) },
-            "Web Load Test" to { WebLoadTestVG(factory) }
+            "Web Load Test" to { WebLoadTestVG(factory) },
+            "Controls" to { ControlsVG(factory) }
     )
 
     override fun generate(): VIEW = with(factory) {

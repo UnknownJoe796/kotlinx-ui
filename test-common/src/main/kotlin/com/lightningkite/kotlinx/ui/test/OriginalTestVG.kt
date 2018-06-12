@@ -20,10 +20,9 @@ class OriginalTestVG<VIEW>(val factory: ViewFactory<VIEW>) : ViewGenerator<VIEW>
                 PlacementPair.topFill to text(text = "Subheader", size = TextSize.Subheader),
                 PlacementPair.topFill to text(text = "Body", size = TextSize.Body),
                 PlacementPair.topFill to text(text = "Tiny", size = TextSize.Tiny),
-                PlacementPair.topFill to progress(ConstantObservableProperty(.5f)),
-                PlacementPair.topFill to work(),
+                PlacementPair.topFill to progress(space(Point(24f, 24f)), ConstantObservableProperty(.5f)),
+                PlacementPair.topFill to work(space(Point(24f, 24f)), ConstantObservableProperty(true)),
                 PlacementPair.topFill to button(label = ConstantObservableProperty("Button"), onClick = {
-
                     stack.value = {
                         num++
                         text(text = "Number $num", size = TextSize.Header, alignPair = AlignPair.CenterCenter)

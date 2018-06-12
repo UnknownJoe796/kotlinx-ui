@@ -4,15 +4,21 @@ import com.lightningkite.kotlinx.collection.WeakHashMap
 import com.lightningkite.kotlinx.lambda.invokeAll
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
 
-class TreeObservableProperty(parent: TreeObservableProperty? = null) : ObservableProperty<Boolean> {
+class TreeObservableProperty() : ObservableProperty<Boolean> {
     var parent: TreeObservableProperty? = null
+        set(value) {
+            if (value == this) throw IllegalArgumentException()
+            field?.children?.remove(this)
+            field = value
+            value?.children?.add(this)
+            broadcast()
+        }
+    var alwaysOn: Boolean = false
         set(value) {
             field = value
             broadcast()
         }
-    var myValue: Boolean = true
-        private set
-    override val value: Boolean get() = myValue && (parent?.value ?: true)
+    override val value: Boolean get() = (parent?.value ?: alwaysOn)
     var previousValue: Boolean = value
 
     val children = ArrayList<TreeObservableProperty>()
@@ -26,25 +32,13 @@ class TreeObservableProperty(parent: TreeObservableProperty? = null) : Observabl
     fun broadcast() {
         val newValue = value
         if (newValue != previousValue) {
-            previousValue = value
+            previousValue = newValue
             listeners.invokeAll(newValue)
             for (child in children) {
                 child.broadcast()
             }
         }
     }
-
-    fun on() {
-        myValue = true
-        broadcast()
-    }
-
-    fun off() {
-        myValue = false
-        broadcast()
-    }
-
-    fun child() = TreeObservableProperty(this)
 }
 
 val AnyLifecycles = WeakHashMap<Any, TreeObservableProperty>()

@@ -15,7 +15,7 @@ class AlphaTestVG<VIEW>(val factory: ViewFactory<VIEW>) : ViewGenerator<VIEW> {
                 PlacementPair.topFill to button(label = ConstantObservableProperty("Change Alpha"), onClick = {
                     alpha.value = if (alpha.value < .5f) 1f else 0f
                 }),
-                PlacementPair.topFill to alpha(text(text = "Header", size = TextSize.Header), alpha)
+                PlacementPair.topFill to text(text = "Header", size = TextSize.Header).alpha(alpha)
         )
     }
 }
