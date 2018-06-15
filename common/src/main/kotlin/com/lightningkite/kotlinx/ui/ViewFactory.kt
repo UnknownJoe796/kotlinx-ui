@@ -9,6 +9,7 @@ import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.helper.BuiltInSVGs
 
 interface ViewFactory<VIEW> {
 
@@ -31,7 +32,7 @@ interface ViewFactory<VIEW> {
     fun window(
             stack: StackObservableProperty<ViewGenerator<VIEW>>,
             tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
-            actions: ObservableList<Pair<TabItem, ()->Unit>>
+            actions: ObservableList<Pair<TabItem, () -> Unit>>
     ): VIEW
 
     /**
@@ -62,7 +63,7 @@ interface ViewFactory<VIEW> {
             onBottom: () -> Unit,
             makeView: (obs: ObservableProperty<T>) -> VIEW
     ): VIEW
-    
+
 
     //Display
 
@@ -104,11 +105,22 @@ interface ViewFactory<VIEW> {
 
     /**
      * A button with the given image and label.  Runs [onClick] when the button is interacted with.
+     * Prefers text over images.
      */
     fun button(
+            label: ObservableProperty<String> = ConstantObservableProperty("Button"),
             image: ObservableProperty<Image?> = ConstantObservableProperty(null),
+            onClick: () -> Unit
+    ): VIEW
+
+    /**
+     * A button with the given image and label.  Runs [onClick] when the button is interacted with.
+     * Prefers images over text.
+     */
+    fun imageButton(
+            image: ObservableProperty<Image> = ConstantObservableProperty(BuiltInSVGs.back(Color.white)),
             label: ObservableProperty<String?> = ConstantObservableProperty(null),
-            onClick:()->Unit
+            onClick: () -> Unit
     ): VIEW
 
 
@@ -212,7 +224,7 @@ interface ViewFactory<VIEW> {
      */
     fun refresh(
             contains: VIEW,
-            working:ObservableProperty<Boolean>,
+            working: ObservableProperty<Boolean>,
             onRefresh: () -> Unit
     ): VIEW
 
@@ -296,12 +308,22 @@ interface ViewFactory<VIEW> {
             color: ObservableProperty<Color>
     ): VIEW
 
+    fun VIEW.background(
+            color: Color
+    ): VIEW = background(ConstantObservableProperty(color))
+
+    fun VIEW.background(): VIEW = background(ConstantObservableProperty(colorSet.background))
+
     /**
      * Changes the alpha of a view.
      */
     fun VIEW.alpha(
             alpha: ObservableProperty<Float>
     ): VIEW
+
+    fun VIEW.alpha(
+            alpha: Float
+    ): VIEW = alpha(ConstantObservableProperty(alpha))
 
     /**
      * Makes a normally non-clickable element clickable.

@@ -4,6 +4,8 @@ import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
 import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StandardObservableProperty
+import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.helper.BuiltInSVGs
 
 fun <VIEW> ViewFactory<VIEW>.text(
         size: TextSize = TextSize.Body,
@@ -20,19 +22,15 @@ fun <VIEW> ViewFactory<VIEW>.space(width: Float, height: Float): VIEW = space(Po
 
 fun <VIEW> ViewFactory<VIEW>.button(
         label: String,
-        onClick: () -> Unit
-): VIEW = button(label = ConstantObservableProperty(label), onClick = onClick)
-
-fun <VIEW> ViewFactory<VIEW>.button(
-        image: Image,
-        onClick: () -> Unit
-): VIEW = button(image = ConstantObservableProperty(image), onClick = onClick)
-
-fun <VIEW> ViewFactory<VIEW>.button(
-        label: String,
-        image: Image,
+        image: Image? = null,
         onClick: () -> Unit
 ): VIEW = button(label = ConstantObservableProperty(label), image = ConstantObservableProperty(image), onClick = onClick)
+
+fun <VIEW> ViewFactory<VIEW>.imageButton(
+        image: Image,
+        label: String? = null,
+        onClick: () -> Unit
+): VIEW = imageButton(label = ConstantObservableProperty(label), image = ConstantObservableProperty(image), onClick = onClick)
 
 fun <VIEW> ViewFactory<VIEW>.pagesEmbedded(
         page: MutableObservableProperty<Int>,
@@ -40,36 +38,36 @@ fun <VIEW> ViewFactory<VIEW>.pagesEmbedded(
 ) = pages(page, *pageGenerators.map { ViewGenerator.make("", it) }.toTypedArray())
 
 fun <VIEW> ViewFactory<VIEW>.workButton(
+        image: ObservableProperty<Image> = ConstantObservableProperty(BuiltInSVGs.back(Color.white)),
         label: ObservableProperty<String?> = ConstantObservableProperty(null),
-        image: ObservableProperty<Image?> = ConstantObservableProperty(null),
         working: MutableObservableProperty<Boolean> = StandardObservableProperty(false),
         onClick: (MutableObservableProperty<Boolean>) -> Unit
 ) = work(
-        view = button(label = label, image = image, onClick = {
+        view = imageButton(label = label, image = image, onClick = {
             onClick.invoke(working)
         }),
         isWorking = working
 )
 
 fun <VIEW> ViewFactory<VIEW>.progressButton(
+        image: ObservableProperty<Image> = ConstantObservableProperty(BuiltInSVGs.back(Color.white)),
         label: ObservableProperty<String?> = ConstantObservableProperty(null),
-        image: ObservableProperty<Image?> = ConstantObservableProperty(null),
         progress: MutableObservableProperty<Float> = StandardObservableProperty(1f),
         onClick: (MutableObservableProperty<Float>) -> Unit
 ) = progress(
-        view = button(label = label, image = image, onClick = {
+        view = imageButton(label = label, image = image, onClick = {
             onClick.invoke(progress)
         }),
         progress = progress
 )
 
 fun <VIEW> ViewFactory<VIEW>.workButton(
+        image: Image,
         label: String? = null,
-        image: Image? = null,
         working: MutableObservableProperty<Boolean> = StandardObservableProperty(false),
         onClick: (MutableObservableProperty<Boolean>) -> Unit
 ) = work(
-        view = button(
+        view = imageButton(
                 label = ConstantObservableProperty(label),
                 image = ConstantObservableProperty(image),
                 onClick = {
@@ -80,12 +78,68 @@ fun <VIEW> ViewFactory<VIEW>.workButton(
 )
 
 fun <VIEW> ViewFactory<VIEW>.progressButton(
+        image: Image,
         label: String? = null,
-        image: Image? = null,
         progress: MutableObservableProperty<Float> = StandardObservableProperty(1f),
         onClick: (MutableObservableProperty<Float>) -> Unit
 ) = progress(
-        view = button(
+        view = imageButton(
+                label = ConstantObservableProperty(label),
+                image = ConstantObservableProperty(image),
+                onClick = {
+                    onClick.invoke(progress)
+                }
+        ),
+        progress = progress
+)
+
+fun <VIEW> ViewFactory<VIEW>.workImageButton(
+        image: ObservableProperty<Image> = ConstantObservableProperty(BuiltInSVGs.back(Color.white)),
+        label: ObservableProperty<String?> = ConstantObservableProperty(null),
+        working: MutableObservableProperty<Boolean> = StandardObservableProperty(false),
+        onClick: (MutableObservableProperty<Boolean>) -> Unit
+) = work(
+        view = imageButton(label = label, image = image, onClick = {
+            onClick.invoke(working)
+        }),
+        isWorking = working
+)
+
+fun <VIEW> ViewFactory<VIEW>.progressImageButton(
+        image: ObservableProperty<Image> = ConstantObservableProperty(BuiltInSVGs.back(Color.white)),
+        label: ObservableProperty<String?> = ConstantObservableProperty(null),
+        progress: MutableObservableProperty<Float> = StandardObservableProperty(1f),
+        onClick: (MutableObservableProperty<Float>) -> Unit
+) = progress(
+        view = imageButton(label = label, image = image, onClick = {
+            onClick.invoke(progress)
+        }),
+        progress = progress
+)
+
+fun <VIEW> ViewFactory<VIEW>.workImageButton(
+        image: Image,
+        label: String? = null,
+        working: MutableObservableProperty<Boolean> = StandardObservableProperty(false),
+        onClick: (MutableObservableProperty<Boolean>) -> Unit
+) = work(
+        view = imageButton(
+                label = ConstantObservableProperty(label),
+                image = ConstantObservableProperty(image),
+                onClick = {
+                    onClick.invoke(working)
+                }
+        ),
+        isWorking = working
+)
+
+fun <VIEW> ViewFactory<VIEW>.progressImageButton(
+        image: Image,
+        label: String? = null,
+        progress: MutableObservableProperty<Float> = StandardObservableProperty(1f),
+        onClick: (MutableObservableProperty<Float>) -> Unit
+) = progress(
+        view = imageButton(
                 label = ConstantObservableProperty(label),
                 image = ConstantObservableProperty(image),
                 onClick = {

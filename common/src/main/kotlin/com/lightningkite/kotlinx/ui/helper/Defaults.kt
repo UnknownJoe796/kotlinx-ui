@@ -41,10 +41,10 @@ fun <VIEW> ViewFactory<VIEW>.defaultLargeWindow(
         stack: StackObservableProperty<ViewGenerator<VIEW>>,
         tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
         actions: ObservableList<Pair<TabItem, () -> Unit>>
-) = with(this.withColorSet(theme.bar)) {
-    vertical {
-        PlacementPair.topFill + horizontal {
-            PlacementPair.centerLeft + button(
+) = vertical {
+    PlacementPair.topFill + with(this@defaultLargeWindow.withColorSet(theme.bar)) {
+        horizontal {
+            PlacementPair.centerLeft + imageButton(
                     image = ConstantObservableProperty(BuiltInSVGs.back(colorSet.foreground)),
                     onClick = { stack.popOrFalse() }
             ).alpha(stack.transform { if (stack.stack.size > 1) 1f else 0f })
@@ -60,37 +60,37 @@ fun <VIEW> ViewFactory<VIEW>.defaultLargeWindow(
                     }
                 } to Animation.Fade
             })
-        }
-
-        PlacementPair.fillFill +
-                if (tabs.isEmpty()) {
-                    swap(stack.withAnimations().transform { it.first.generate() to it.second })
-                            .background(ConstantObservableProperty(colorSet.background))
-                } else {
-                    horizontal {
-                        PlacementPair.fillLeft + scroll(vertical {
-                            for (tab in tabs) {
-                                PlacementPair.topFill + button(tab.first.text, tab.first.image) {
-                                    stack.reset(tab.second)
-                                }
-                            }
-                        })
-                        PlacementPair.fillFill + swap(
-                                stack.withAnimations().transform { it.first.generate() to it.second }
-                        ).background(ConstantObservableProperty(colorSet.background))
-
-                    }
-                }
+        }.background()
     }
+
+    PlacementPair.fillFill +
+            if (tabs.isEmpty()) {
+                swap(stack.withAnimations().transform { it.first.generate() to it.second })
+                        .background()
+            } else {
+                horizontal {
+                    PlacementPair.fillLeft + scroll(vertical {
+                        for (tab in tabs) {
+                            PlacementPair.topFill + button(tab.first.text, tab.first.image) {
+                                stack.reset(tab.second)
+                            }
+                        }
+                    })
+                    PlacementPair.fillFill + swap(
+                            stack.withAnimations().transform { it.first.generate() to it.second }
+                    ).background()
+
+                }
+            }
 }
 
 fun <VIEW> ViewFactory<VIEW>.defaultSmallWindow(
         stack: StackObservableProperty<ViewGenerator<VIEW>>,
         tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
         actions: ObservableList<Pair<TabItem, () -> Unit>>
-) = with(this.withColorSet(theme.bar)) {
-    vertical {
-        PlacementPair.topFill + horizontal {
+) = vertical {
+    PlacementPair.topFill + with(this@defaultSmallWindow.withColorSet(theme.bar)) {
+        horizontal {
             PlacementPair.centerLeft + button(
                     image = ConstantObservableProperty(BuiltInSVGs.back(colorSet.foreground)),
                     onClick = { stack.popOrFalse() }
@@ -107,19 +107,20 @@ fun <VIEW> ViewFactory<VIEW>.defaultSmallWindow(
                     }
                 } to Animation.Fade
             })
-        }
+        }.background()
+    }
 
-        PlacementPair.fillFill + swap(stack.withAnimations().transform { it.first.generate() to it.second })
+    PlacementPair.fillFill + swap(stack.withAnimations().transform { it.first.generate() to it.second })
+            .background()
 
-        if (!tabs.isEmpty()) {
-            PlacementPair.topFill + horizontal {
-                for (tab in tabs) {
-                    PlacementPair.fillFill + button(tab.first.text, tab.first.image) {
-                        stack.reset(tab.second)
-                    }
+    if (!tabs.isEmpty()) {
+        PlacementPair.topFill + horizontal {
+            for (tab in tabs) {
+                PlacementPair.fillFill + button(tab.first.text, tab.first.image) {
+                    stack.reset(tab.second)
                 }
             }
-        }
+        }.background()
     }
 }
 

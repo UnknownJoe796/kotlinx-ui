@@ -160,8 +160,9 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    fun imageButton(
+    override fun imageButton(
             image: ObservableProperty<Image>,
+            label: ObservableProperty<String?>,
             onClick: () -> Unit
     ) = JFXButton().apply {
         val parent = this
@@ -369,8 +370,8 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun button(
+            label: ObservableProperty<String>,
             image: ObservableProperty<Image?>,
-            label: ObservableProperty<String?>,
             onClick: () -> Unit
     ) = JFXButton().apply {
         this.buttonType = JFXButton.ButtonType.RAISED

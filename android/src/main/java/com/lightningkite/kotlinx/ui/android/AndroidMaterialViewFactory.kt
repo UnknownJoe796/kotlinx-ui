@@ -4,6 +4,7 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.graphics.PorterDuff
+import android.os.Build
 import android.support.design.widget.TabLayout
 import android.support.v4.view.PagerAdapter
 import android.support.v4.view.ViewPager
@@ -66,6 +67,7 @@ class AndroidMaterialViewFactory(
 
                 override fun instantiateItem(container: ViewGroup, position: Int): Any {
                     val view = pageGenerator[position].generate()
+                    view.lifecycle.parent = this@apply.lifecycle
                     container.addView(view)
                     return view
                 }
@@ -103,14 +105,16 @@ class AndroidMaterialViewFactory(
             context: Context,
             val makeView: (obs: ObservableProperty<T>) -> View,
             val parent: TreeObservableProperty
-    ) : RecyclerView.ViewHolder(FrameLayout(context)) {
+    ) : RecyclerView.ViewHolder(FrameLayout(context).apply {
+        layoutParams = RecyclerView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
+    }) {
         var property: StandardObservableProperty<T>? = null
         fun update(item: T) {
             if (property == null) {
                 property = StandardObservableProperty(item)
                 val newView = makeView.invoke(property!!)
                 newView.lifecycle.parent = parent
-                (itemView as FrameLayout).addView(newView)
+                (itemView as FrameLayout).addView(newView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
             } else {
                 property!!.value = item
             }
@@ -189,8 +193,8 @@ class AndroidMaterialViewFactory(
     }
 
     override fun button(
+            label: ObservableProperty<String>,
             image: ObservableProperty<Image?>,
-            label: ObservableProperty<String?>,
             onClick: () -> Unit
     ): View = Button(context).apply {
         background.setColorFilter(theme.accent.background.toInt(), PorterDuff.Mode.MULTIPLY)
@@ -200,6 +204,23 @@ class AndroidMaterialViewFactory(
         }
         lifecycle.bind(image) {
             setCompoundDrawablesWithIntrinsicBounds(it?.android(), null, null, null)
+        }
+        setOnClickListener { onClick.invoke() }
+    }
+
+    override fun imageButton(
+            image: ObservableProperty<Image>,
+            label: ObservableProperty<String?>,
+            onClick: () -> Unit
+    ): View = ImageButton(context).apply {
+        this.setBackgroundResource(selectableItemBackgroundBorderlessResource)
+        lifecycle.bind(label) {
+            if (Build.VERSION.SDK_INT > 26) {
+                this.tooltipText = it
+            }
+        }
+        lifecycle.bind(image) {
+            setImageDrawable(it.android())
         }
         setOnClickListener { onClick.invoke() }
     }
@@ -321,9 +342,9 @@ class AndroidMaterialViewFactory(
                 }
             }
         })
-        lifecycle.bind(text) {
-            if (text.value != text.toString()) {
-                this.setText(text.value)
+        lifecycle.listen(text) {
+            if (it != this@apply.text.toString()) {
+                this.setText(it)
             }
         }
 
@@ -625,6 +646,7 @@ class AndroidMaterialViewFactory(
 
     override fun card(view: View): View = CardView(context).apply {
         setCardBackgroundColor(colorSet.background.toInt())
+        view.lifecycle.parent = this.lifecycle
         addView(view)
     }
 

@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-platform-android'
+apply plugin: 'kotlinx-serialization'
+
 android {
     compileSdkVersion 27
 
@@ -14,6 +16,10 @@ android {
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
+    }
+
+    packagingOptions {
+        exclude 'META-INF/main.kotlin_module'
     }
 
     buildTypes {

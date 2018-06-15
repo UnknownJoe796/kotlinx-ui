@@ -14,7 +14,6 @@ import kotlinx.serialization.serializer
 class WebLoadTestVG<VIEW>(val factory: ViewFactory<VIEW>) : ViewGenerator<VIEW> {
     override val title: String = "Web Load Test"
 
-
     @Serializable
     data class Post(
             var userId: Long = 0,

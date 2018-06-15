@@ -69,7 +69,6 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     implementation "com.lightningkite.kotlinx:jvm:${rootProject.libraryVersion}"
-    implementation "com.github.bigfishcat.android:svg-android:2.0.8"
     expectedBy project(':common')
 
     implementation "com.android.support:appcompat-v7:${compatVersion}"
