@@ -2,10 +2,10 @@ package com.lightningkite.kotlinx.ui.test
 
 import com.lightningkite.kotlinx.ui.*
 
-class FrameVG<VIEW>(val factory: ViewFactory<VIEW>) : ViewGenerator<VIEW> {
+class FrameVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "Horizontal"
 
-    override fun generate(): VIEW = with(factory) {
+    override fun generate(dependency: ViewFactory<VIEW>): VIEW = with(dependency) {
         frame(
                 PlacementPair(Placement.wrapStart, Placement.wrapStart) to text(text = "Top Left", size = TextSize.Body),
                 PlacementPair(Placement.wrapStart, Placement.wrapCenter) to text(text = "Center Left", size = TextSize.Body),

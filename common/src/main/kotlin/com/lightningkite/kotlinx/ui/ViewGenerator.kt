@@ -1,13 +1,16 @@
 package com.lightningkite.kotlinx.ui
 
-interface ViewGenerator<VIEW> {
+interface ViewGenerator<in DEPENDENCY, out VIEW> {
     val title: String get() = ""
-    fun generate(): VIEW
+    fun generate(dependency: DEPENDENCY): VIEW
 
     companion object {
-        fun <VIEW> make(title: String, generate: () -> VIEW) = object : ViewGenerator<VIEW> {
+        inline fun <DEPENDENCY, VIEW> make(
+                title: String,
+                crossinline generate: (DEPENDENCY) -> VIEW
+        ) = object : ViewGenerator<DEPENDENCY, VIEW> {
             override val title: String = title
-            override fun generate(): VIEW = generate.invoke()
+            override fun generate(dependency: DEPENDENCY): VIEW = generate.invoke(dependency)
         }
     }
 }

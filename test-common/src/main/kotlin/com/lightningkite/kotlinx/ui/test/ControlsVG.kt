@@ -5,22 +5,31 @@ import com.lightningkite.kotlinx.locale.TimeStamps
 import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
 import com.lightningkite.kotlinx.observable.property.StandardObservableProperty
-import com.lightningkite.kotlinx.ui.PlacementPair
-import com.lightningkite.kotlinx.ui.ViewFactory
-import com.lightningkite.kotlinx.ui.ViewGenerator
-import com.lightningkite.kotlinx.ui.vertical
+import com.lightningkite.kotlinx.ui.*
 
-class ControlsVG<VIEW>(val factory: ViewFactory<VIEW>) : ViewGenerator<VIEW> {
+class ControlsVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "Controls"
     val alpha = StandardObservableProperty(0f)
 
-    override fun generate(): VIEW = with(factory) {
+    override fun generate(dependency: ViewFactory<VIEW>): VIEW = with(dependency) {
         scroll(vertical {
             defaultPlacement = PlacementPair.topFill
 
             +entryContext(
                     label = "button",
-                    field = button(label = ConstantObservableProperty("Button"), onClick = {})
+                    field = button(label = ConstantObservableProperty("Button"), importance = Importance.Low, onClick = {})
+            )
+            +entryContext(
+                    label = "button",
+                    field = button(label = ConstantObservableProperty("Button"), importance = Importance.Normal, onClick = {})
+            )
+            +entryContext(
+                    label = "button",
+                    field = button(label = ConstantObservableProperty("Button"), importance = Importance.High, onClick = {})
+            )
+            +entryContext(
+                    label = "button",
+                    field = button(label = ConstantObservableProperty("Button"), importance = Importance.Danger, onClick = {})
             )
             +entryContext(
                     label = "textField",

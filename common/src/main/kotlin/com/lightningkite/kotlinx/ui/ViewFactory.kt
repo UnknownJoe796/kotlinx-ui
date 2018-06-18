@@ -9,7 +9,6 @@ import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.ui.color.Color
-import com.lightningkite.kotlinx.ui.helper.BuiltInSVGs
 
 interface ViewFactory<VIEW> {
 
@@ -29,18 +28,20 @@ interface ViewFactory<VIEW> {
     /**
      * The main window of the program - provides a stack, navigation, tab navigation, and actions.
      */
-    fun window(
-            stack: StackObservableProperty<ViewGenerator<VIEW>>,
-            tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
+    fun <DEPENDENCY> window(
+            dependency: DEPENDENCY,
+            stack: StackObservableProperty<ViewGenerator<DEPENDENCY, VIEW>>,
+            tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, VIEW>>>,
             actions: ObservableList<Pair<TabItem, () -> Unit>>
     ): VIEW
 
     /**
      * A set of ordered pages you can swap through with the built-in navigator.
      */
-    fun pages(
+    fun <DEPENDENCY> pages(
+            dependency: DEPENDENCY,
             page: MutableObservableProperty<Int>,
-            vararg pageGenerator: ViewGenerator<VIEW>
+            vararg pageGenerator: ViewGenerator<DEPENDENCY, VIEW>
     ): VIEW
 
     /**
@@ -72,18 +73,16 @@ interface ViewFactory<VIEW> {
      */
     fun text(
             text: ObservableProperty<String>,
-            style: TextStyle = TextStyle.Normal,
+            importance: Importance = Importance.Normal,
             size: TextSize = TextSize.Body,
             align: AlignPair = AlignPair.CenterLeft
     ): VIEW
 
     /**
-     * Shows an image with the given scaling and a minimum size.
+     * Shows an image with the given scaling.
      * While loading, it will show a loading indicator.
      */
     fun image(
-            minSize: Point,
-            scaleType: ImageScaleType,
             image: ObservableProperty<Image>
     ): VIEW
 
@@ -105,21 +104,22 @@ interface ViewFactory<VIEW> {
 
     /**
      * A button with the given image and label.  Runs [onClick] when the button is interacted with.
-     * Prefers text over images.
      */
     fun button(
-            label: ObservableProperty<String> = ConstantObservableProperty("Button"),
+            label: ObservableProperty<String>,
             image: ObservableProperty<Image?> = ConstantObservableProperty(null),
+            importance: Importance = Importance.Normal,
             onClick: () -> Unit
     ): VIEW
 
     /**
      * A button with the given image and label.  Runs [onClick] when the button is interacted with.
-     * Prefers images over text.
+     * Attempts to use image over text.
      */
     fun imageButton(
-            image: ObservableProperty<Image> = ConstantObservableProperty(BuiltInSVGs.back(Color.white)),
+            image: ObservableProperty<Image>,
             label: ObservableProperty<String?> = ConstantObservableProperty(null),
+            importance: Importance = Importance.Normal,
             onClick: () -> Unit
     ): VIEW
 
@@ -138,7 +138,7 @@ interface ViewFactory<VIEW> {
             label: String,
             help: String? = null,
             icon: Image? = null,
-            feedback: ObservableProperty<Pair<TextStyle, String>?> = ConstantObservableProperty(null),
+            feedback: ObservableProperty<Pair<Importance, String>?> = ConstantObservableProperty(null),
             field: VIEW
     ): VIEW
 
@@ -307,11 +307,9 @@ interface ViewFactory<VIEW> {
     fun VIEW.background(
             color: ObservableProperty<Color>
     ): VIEW
-
     fun VIEW.background(
             color: Color
     ): VIEW = background(ConstantObservableProperty(color))
-
     fun VIEW.background(): VIEW = background(ConstantObservableProperty(colorSet.background))
 
     /**
@@ -320,7 +318,6 @@ interface ViewFactory<VIEW> {
     fun VIEW.alpha(
             alpha: ObservableProperty<Float>
     ): VIEW
-
     fun VIEW.alpha(
             alpha: Float
     ): VIEW = alpha(ConstantObservableProperty(alpha))

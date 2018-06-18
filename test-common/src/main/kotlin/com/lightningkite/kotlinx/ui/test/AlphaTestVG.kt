@@ -4,11 +4,11 @@ import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
 import com.lightningkite.kotlinx.observable.property.StandardObservableProperty
 import com.lightningkite.kotlinx.ui.*
 
-class AlphaTestVG<VIEW>(val factory: ViewFactory<VIEW>) : ViewGenerator<VIEW> {
+class AlphaTestVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "Alpha"
     val alpha = StandardObservableProperty(0f)
 
-    override fun generate(): VIEW = with(factory) {
+    override fun generate(dependency: ViewFactory<VIEW>): VIEW = with(dependency) {
 
 
         vertical(

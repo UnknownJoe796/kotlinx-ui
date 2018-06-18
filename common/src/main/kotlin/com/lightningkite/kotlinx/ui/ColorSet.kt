@@ -10,10 +10,20 @@ data class ColorSet(
         val foregroundDisabled: Color = foreground.copy(alpha = foreground.alpha * 3 / 4),
         val foregroundHighlighted: Color = foreground.highlight(.2f)
 ) {
+
+    fun importance(value: Importance): Color = when (value) {
+        Importance.Low -> foregroundDisabled
+        Importance.Normal -> foreground
+        Importance.High -> foregroundHighlighted
+        Importance.Danger -> ColorSet.destructive.foreground
+    }
+
     companion object {
         fun basedOnBack(color: Color) = ColorSet(
                 background = color,
                 foreground = if (color.average > .5f) Color.black else Color.white
         )
+
+        val destructive = basedOnBack(Color.red)
     }
 }

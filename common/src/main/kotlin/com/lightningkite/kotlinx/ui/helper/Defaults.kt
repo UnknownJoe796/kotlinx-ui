@@ -8,28 +8,25 @@ fun <VIEW> ViewFactory<VIEW>.defaultEntryContext(
         label: String,
         help: String?,
         icon: Image?,
-        feedback: ObservableProperty<Pair<TextStyle, String>?>,
+        feedback: ObservableProperty<Pair<Importance, String>?>,
         field: VIEW
 ) = horizontal {
 
     defaultPlacement = PlacementPair.centerLeft
 
-    +(
-            if (icon == null)
-                space(Point(24f, 24f))
-            else
-                image(Point(24f, 24f), ImageScaleType.Fill, ConstantObservableProperty(icon))
-            ).margin(2f)
+    if (icon != null) {
+        +(image(ConstantObservableProperty(icon))).margin(2f)
 
-    +space(4f)
+        +space(4f)
+    }
 
-    PlacementPair.fillFill + vertical {
+    PlacementPair.topFill + vertical {
         PlacementPair.topLeft + text(ConstantObservableProperty(label), size = TextSize.Tiny).margin(2f)
         PlacementPair.topFill + field.margin(2f)
         PlacementPair.topFill + swap(
                 feedback.transform {
                     val v = if (it == null) space(Point(12f, 12f))
-                    else text(ConstantObservableProperty(it.second), style = it.first, size = TextSize.Tiny)
+                    else text(ConstantObservableProperty(it.second), importance = it.first, size = TextSize.Tiny)
                     v to Animation.Fade
                 }
         ).margin(2f)
@@ -37,9 +34,10 @@ fun <VIEW> ViewFactory<VIEW>.defaultEntryContext(
 }.margin(6f)
 
 
-fun <VIEW> ViewFactory<VIEW>.defaultLargeWindow(
-        stack: StackObservableProperty<ViewGenerator<VIEW>>,
-        tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
+fun <DEPENDENCY, VIEW> ViewFactory<VIEW>.defaultLargeWindow(
+        dependency: DEPENDENCY,
+        stack: StackObservableProperty<ViewGenerator<DEPENDENCY, VIEW>>,
+        tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, VIEW>>>,
         actions: ObservableList<Pair<TabItem, () -> Unit>>
 ) = vertical {
     PlacementPair.topFill + with(this@defaultLargeWindow.withColorSet(theme.bar)) {
@@ -65,7 +63,7 @@ fun <VIEW> ViewFactory<VIEW>.defaultLargeWindow(
 
     PlacementPair.fillFill +
             if (tabs.isEmpty()) {
-                swap(stack.withAnimations().transform { it.first.generate() to it.second })
+                swap(stack.withAnimations().transform { it.first.generate(dependency) to it.second })
                         .background()
             } else {
                 horizontal {
@@ -77,21 +75,22 @@ fun <VIEW> ViewFactory<VIEW>.defaultLargeWindow(
                         }
                     })
                     PlacementPair.fillFill + swap(
-                            stack.withAnimations().transform { it.first.generate() to it.second }
+                            stack.withAnimations().transform { it.first.generate(dependency) to it.second }
                     ).background()
 
                 }
             }
 }
 
-fun <VIEW> ViewFactory<VIEW>.defaultSmallWindow(
-        stack: StackObservableProperty<ViewGenerator<VIEW>>,
-        tabs: List<Pair<TabItem, ViewGenerator<VIEW>>>,
+fun <DEPENDENCY, VIEW> ViewFactory<VIEW>.defaultSmallWindow(
+        dependency: DEPENDENCY,
+        stack: StackObservableProperty<ViewGenerator<DEPENDENCY, VIEW>>,
+        tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, VIEW>>>,
         actions: ObservableList<Pair<TabItem, () -> Unit>>
 ) = vertical {
     PlacementPair.topFill + with(this@defaultSmallWindow.withColorSet(theme.bar)) {
         horizontal {
-            PlacementPair.centerLeft + button(
+            PlacementPair.centerLeft + imageButton(
                     image = ConstantObservableProperty(BuiltInSVGs.back(colorSet.foreground)),
                     onClick = { stack.popOrFalse() }
             ).alpha(stack.transform { if (stack.stack.size > 1) 1f else 0f })
@@ -110,7 +109,7 @@ fun <VIEW> ViewFactory<VIEW>.defaultSmallWindow(
         }.background()
     }
 
-    PlacementPair.fillFill + swap(stack.withAnimations().transform { it.first.generate() to it.second })
+    PlacementPair.fillFill + swap(stack.withAnimations().transform { it.first.generate(dependency) to it.second })
             .background()
 
     if (!tabs.isEmpty()) {
@@ -125,9 +124,10 @@ fun <VIEW> ViewFactory<VIEW>.defaultSmallWindow(
 }
 
 
-fun <VIEW> ViewFactory<VIEW>.defaultPages(
+fun <DEPENDENCY, VIEW> ViewFactory<VIEW>.defaultPages(
+        dependency: DEPENDENCY,
         page: MutableObservableProperty<Int>,
-        vararg pageGenerator: ViewGenerator<VIEW>
+        vararg pageGenerator: ViewGenerator<DEPENDENCY, VIEW>
 ) = vertical(
         PlacementPair.fillFill to run {
             var previous = page.value
@@ -138,15 +138,15 @@ fun <VIEW> ViewFactory<VIEW>.defaultPages(
                     else -> Animation.Fade
                 }
                 previous = it
-                pageGenerator[it.coerceIn(pageGenerator.indices)].generate() to anim
+                pageGenerator[it.coerceIn(pageGenerator.indices)].generate(dependency) to anim
             })
         },
         PlacementPair.bottomFill to frame(
-                PlacementPair.bottomLeft to button(image = ConstantObservableProperty(BuiltInSVGs.leftChevron(colorSet.foreground)), onClick = {
+                PlacementPair.bottomLeft to imageButton(image = ConstantObservableProperty(BuiltInSVGs.leftChevron(colorSet.foreground)), onClick = {
                     page.value = page.value.minus(1).coerceIn(pageGenerator.indices)
                 }),
                 PlacementPair.bottomCenter to text(text = page.transform { "${it + 1} / ${pageGenerator.size}" }, size = TextSize.Tiny),
-                PlacementPair.bottomRight to button(image = ConstantObservableProperty(BuiltInSVGs.rightChevron(colorSet.foreground)), onClick = {
+                PlacementPair.bottomRight to imageButton(image = ConstantObservableProperty(BuiltInSVGs.rightChevron(colorSet.foreground)), onClick = {
                     page.value = page.value.plus(1).coerceIn(pageGenerator.indices)
                 })
         )

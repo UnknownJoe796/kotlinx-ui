@@ -4,6 +4,9 @@ import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import android.content.Context
 import android.graphics.PorterDuff
+import android.graphics.drawable.RippleDrawable
+import android.graphics.drawable.ShapeDrawable
+import android.graphics.drawable.shapes.OvalShape
 import android.os.Build
 import android.support.design.widget.TabLayout
 import android.support.v4.view.PagerAdapter
@@ -14,6 +17,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -33,32 +37,59 @@ import com.lightningkite.kotlinx.ui.color.Color
 import com.lightningkite.kotlinx.ui.helper.TreeObservableProperty
 import com.lightningkite.kotlinx.ui.helper.defaultEntryContext
 import com.lightningkite.kotlinx.ui.helper.defaultSmallWindow
+import lk.android.activity.access.ActivityAccess
 import java.text.DecimalFormat
 import java.text.ParseException
 import java.util.*
 
 data class DesiredMargins(val left: Int, val top: Int, val right: Int, val bottom: Int)
 
-private val desiredMargins = WeakHashMap<View, DesiredMargins>()
+private val ViewDesiredMargins = WeakHashMap<View, DesiredMargins>()
+var View.desiredMargins: DesiredMargins
+    get() = ViewDesiredMargins.getOrPut(this) {
+        val size = when (this) {
+            is CardView -> (8 * dip).toInt()
+            is LinearLayout, is FrameLayout, is RecyclerView -> 0
+            else -> (8 * dip).toInt()
+        }
+        return DesiredMargins(size, size, size, size)
+    }
+    set(value) {
+        ViewDesiredMargins[this] = value
+    }
+
+var dip = 1f
 
 class AndroidMaterialViewFactory(
-        val context: Context,
+        val access: ActivityAccess,
         override val theme: Theme,
         override val colorSet: ColorSet = theme.main
 ) : ViewFactory<View> {
 
-    val dip = context.resources.displayMetrics.density
+    val context = access.context
 
-    override fun withColorSet(colorSet: ColorSet): ViewFactory<View> = AndroidMaterialViewFactory(context = context, theme = theme, colorSet = colorSet)
+    init {
+        dip = context.resources.displayMetrics.density
+    }
 
+    override fun withColorSet(colorSet: ColorSet): ViewFactory<View> = AndroidMaterialViewFactory(access = access, theme = theme, colorSet = colorSet)
 
-    override fun window(
-            stack: StackObservableProperty<ViewGenerator<View>>,
-            tabs: List<Pair<TabItem, ViewGenerator<View>>>,
+    override fun <DEPENDENCY> window(
+            dependency: DEPENDENCY,
+            stack: StackObservableProperty<ViewGenerator<DEPENDENCY, View>>,
+            tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, View>>>,
             actions: ObservableList<Pair<TabItem, () -> Unit>>
-    ): View = defaultSmallWindow(stack, tabs, actions)
+    ): View = defaultSmallWindow(dependency, stack, tabs, actions).apply {
+        lifecycle.listen(access.onBackPressed) {
+            stack.popOrFalse()
+        }
+    }
 
-    override fun pages(page: MutableObservableProperty<Int>, vararg pageGenerator: ViewGenerator<View>): View = frame {
+    override fun <DEPENDENCY> pages(
+            dependency: DEPENDENCY,
+            page: MutableObservableProperty<Int>,
+            vararg pageGenerator: ViewGenerator<DEPENDENCY, View>
+    ): View = frame {
         PlacementPair.fillFill + ViewPager(context).apply {
             adapter = object : PagerAdapter() {
                 override fun isViewFromObject(view: View, `object`: Any): Boolean = view == `object`
@@ -66,12 +97,24 @@ class AndroidMaterialViewFactory(
                 override fun getCount(): Int = pageGenerator.size
 
                 override fun instantiateItem(container: ViewGroup, position: Int): Any {
-                    val view = pageGenerator[position].generate()
+                    val view = pageGenerator[position].generate(dependency)
                     view.lifecycle.parent = this@apply.lifecycle
                     container.addView(view)
                     return view
                 }
+
+                override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
+                    container.removeView(`object` as View)
+                }
             }
+            this.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+                override fun onPageScrollStateChanged(state: Int) {}
+                override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+                override fun onPageSelected(position: Int) {
+                    page.value = position
+                }
+            })
+            //TODO: Listen for changes to page number
         }
         PlacementPair.bottomCenter + text(text = page.transform { "${it + 1} / ${pageGenerator.size}" }, size = TextSize.Tiny)
     }
@@ -114,7 +157,11 @@ class AndroidMaterialViewFactory(
                 property = StandardObservableProperty(item)
                 val newView = makeView.invoke(property!!)
                 newView.lifecycle.parent = parent
-                (itemView as FrameLayout).addView(newView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+                (itemView as FrameLayout).addView(newView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT).apply {
+                    newView.desiredMargins.let {
+                        setMargins(it.left, it.top, it.right, it.bottom)
+                    }
+                })
             } else {
                 property!!.value = item
             }
@@ -150,7 +197,7 @@ class AndroidMaterialViewFactory(
 
     override fun text(
             text: ObservableProperty<String>,
-            style: TextStyle,
+            importance: Importance,
             size: TextSize,
             align: AlignPair
     ): View = TextView(context).apply {
@@ -158,27 +205,19 @@ class AndroidMaterialViewFactory(
         lifecycle.bind(text) {
             this.text = it
         }
-        setTextColor(when (style) {
-            TextStyle.Normal -> colorSet.foreground.toInt()
-            TextStyle.Danger -> Color.red.toInt()
-            TextStyle.Faded -> colorSet.foregroundDisabled.toInt()
-        })
+        setTextColor(colorSet.importance(importance).toInt())
         gravity = align.android()
     }
 
     override fun image(
-            minSize: Point,
-            scaleType: ImageScaleType,
             image: ObservableProperty<Image>
     ): View = ImageView(context).apply {
-        minimumWidth = (minSize.x * dip).toInt()
-        minimumHeight = (minSize.y * dip).toInt()
-        this.scaleType = when (scaleType) {
-            ImageScaleType.Crop -> ImageView.ScaleType.CENTER_CROP
-            ImageScaleType.Fill -> ImageView.ScaleType.CENTER_INSIDE
-            ImageScaleType.Center -> ImageView.ScaleType.CENTER
-        }
         lifecycle.bind(image) {
+            this.scaleType = when (it.scaleType) {
+                ImageScaleType.Crop -> ImageView.ScaleType.CENTER_CROP
+                ImageScaleType.Fill -> ImageView.ScaleType.FIT_CENTER
+                ImageScaleType.Center -> ImageView.ScaleType.CENTER
+            }
             setImageDrawable(it.android())
         }
     }
@@ -195,10 +234,16 @@ class AndroidMaterialViewFactory(
     override fun button(
             label: ObservableProperty<String>,
             image: ObservableProperty<Image?>,
+            importance: Importance,
             onClick: () -> Unit
     ): View = Button(context).apply {
-        background.setColorFilter(theme.accent.background.toInt(), PorterDuff.Mode.MULTIPLY)
-        setTextColor(theme.accent.foreground.toInt())
+        val colorSet = theme.importance(importance)
+        if (importance == Importance.Low) {
+            setBackgroundResource(selectableItemBackgroundResource)
+        } else {
+            background.setColorFilter(colorSet.background.toInt(), PorterDuff.Mode.MULTIPLY)
+        }
+        setTextColor(colorSet.foreground.toInt())
         lifecycle.bind(label) {
             this.text = it
         }
@@ -211,16 +256,37 @@ class AndroidMaterialViewFactory(
     override fun imageButton(
             image: ObservableProperty<Image>,
             label: ObservableProperty<String?>,
+            importance: Importance,
             onClick: () -> Unit
     ): View = ImageButton(context).apply {
-        this.setBackgroundResource(selectableItemBackgroundBorderlessResource)
         lifecycle.bind(label) {
             if (Build.VERSION.SDK_INT > 26) {
                 this.tooltipText = it
             }
         }
         lifecycle.bind(image) {
-            setImageDrawable(it.android())
+            if (importance == Importance.Low) {
+                setBackgroundResource(selectableItemBackgroundResource)
+                setImageDrawable(it.android())
+            } else {
+                val drawable = it.android()
+                background = ShapeDrawable(OvalShape().apply {
+                    this.resize(drawable.bounds.width().toFloat(), drawable.bounds.height().toFloat())
+                }).apply {
+                    this.paint.color = theme.importance(importance).background.toInt()
+                }.let { circle ->
+                    if (Build.VERSION.SDK_INT >= 21) {
+                        RippleDrawable(
+                                theme.importance(importance).androidForegroundOverlay(),
+                                circle,
+                                circle
+                        )
+                    } else {
+                        circle
+                    }
+                }
+                setImageDrawable(drawable)
+            }
         }
         setOnClickListener { onClick.invoke() }
     }
@@ -229,13 +295,12 @@ class AndroidMaterialViewFactory(
             label: String,
             help: String?,
             icon: Image?,
-            feedback: ObservableProperty<Pair<TextStyle, String>?>,
+            feedback: ObservableProperty<Pair<Importance, String>?>,
             field: View
     ): View = defaultEntryContext(label, help, icon, feedback, field)
 
 
     open class StandardListAdapter<T>(
-            val context: Context,
             list: List<T>,
             val parent: TreeObservableProperty,
             val makeView: (obs: ObservableProperty<T>) -> View
@@ -260,20 +325,22 @@ class AndroidMaterialViewFactory(
 
         @Suppress("UNCHECKED_CAST")
         override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View? {
-            val item = list[position]
-            if (convertView == null) {
+            return if (convertView == null) {
                 val newObs = ItemObservable(list[position])
                 val newView = makeView(newObs)
                 newView.lifecycle.parent = this.parent
                 newView.tag = newObs
                 newObs.index = position
                 newView.layoutParams = AbsListView.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
-                return newView
+                newView.desiredMargins.let {
+                    newView.setPadding(it.left, it.top, it.right, it.bottom)
+                }
+                newView
             } else {
                 val obs = convertView.tag as ItemObservable<T>
                 obs.index = position
                 obs.value = (list[position])
-                return convertView
+                convertView
             }
         }
     }
@@ -283,7 +350,7 @@ class AndroidMaterialViewFactory(
             selected: MutableObservableProperty<T>,
             makeView: (obs: ObservableProperty<T>) -> View
     ): View = Spinner(context).apply {
-        val newAdapter: StandardListAdapter<T> = StandardListAdapter<T>(context, options, lifecycle, makeView)
+        val newAdapter: StandardListAdapter<T> = StandardListAdapter<T>(options, lifecycle, makeView)
         adapter = newAdapter
 
         var indexAlreadySet = false
@@ -357,6 +424,7 @@ class AndroidMaterialViewFactory(
             placeholder: String,
             type: TextInputType
     ): View = textField(text, placeholder, type).apply {
+        gravity = Gravity.TOP or Gravity.START
         maxLines = Int.MAX_VALUE
         minHeight = (100 * dip).toInt()
     }
@@ -434,13 +502,13 @@ class AndroidMaterialViewFactory(
                 val start: Calendar = observable.value.toJava()
                 DatePickerDialog(
                         context,
-                        DatePickerDialog.OnDateSetListener { view, year, monthOfYear, dayOfMonth ->
+                        DatePickerDialog.OnDateSetListener { _, year, monthOfYear, dayOfMonth ->
                             start.set(Calendar.YEAR, year)
                             start.set(Calendar.MONTH, monthOfYear)
                             start.set(Calendar.DAY_OF_MONTH, dayOfMonth)
                             TimePickerDialog(
                                     context,
-                                    TimePickerDialog.OnTimeSetListener { view, hourOfDay, minute ->
+                                    TimePickerDialog.OnTimeSetListener { _, hourOfDay, minute ->
                                         start.set(Calendar.HOUR_OF_DAY, hourOfDay)
                                         start.set(Calendar.MINUTE, minute)
                                         observable.value = start.toDateTime()
@@ -551,13 +619,31 @@ class AndroidMaterialViewFactory(
     }
 
     override fun swap(view: ObservableProperty<Pair<View, Animation>>): View = FrameLayout(context).apply {
-        val man = ViewSwapManager<FrameLayout>(this, { FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT) })
         var currentView: View? = null
+
+        fun swap(newView: View, animation: AnimationSet = AnimationSet.fade) {
+            val oldView = currentView
+            if (newView == oldView) return
+            oldView?.lifecycle?.parent = null
+
+            addView(newView, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT).apply {
+                newView.desiredMargins.let {
+                    setMargins(it.left, it.top, it.right, it.bottom)
+                }
+            })
+            if (oldView != null) {
+                //animate out old view
+                animation.animateOut(oldView, this).withEndAction { removeView(oldView) }.start()
+
+                //animate in new view
+                animation.animateIn(newView, this).start()
+            }
+            currentView = newView
+            newView.lifecycle.parent = this.lifecycle
+        }
+
         lifecycle.bind(view) {
-            currentView?.lifecycle?.parent = null
-            man.swap(it.first, it.second.android())
-            it.first.lifecycle.parent = this.lifecycle
-            currentView = it.first
+            swap(it.first, it.second.android())
         }
     }
 
@@ -570,13 +656,13 @@ class AndroidMaterialViewFactory(
         orientation = LinearLayout.HORIZONTAL
         for ((placement, subview) in views) {
             subview.lifecycle.parent = this.lifecycle
-            layoutParams = LinearLayout.LayoutParams(
-                    placement.horizontal.androidSize(dip),
+            val layoutParams = LinearLayout.LayoutParams(
+                    if (placement.horizontal.align == Align.Fill) 0 else placement.horizontal.androidSize(dip),
                     placement.vertical.androidSize(dip),
                     if (placement.horizontal.align == Align.Fill) placement.horizontal.size else 0f
             ).apply {
                 gravity = placement.alignPair.android()
-                desiredMargins[subview]?.let {
+                subview.desiredMargins.let {
                     setMargins(it.left, it.top, it.right, it.bottom)
                 }
             }
@@ -591,13 +677,13 @@ class AndroidMaterialViewFactory(
         orientation = LinearLayout.VERTICAL
         for ((placement, subview) in views) {
             subview.lifecycle.parent = this.lifecycle
-            layoutParams = LinearLayout.LayoutParams(
+            val layoutParams = LinearLayout.LayoutParams(
                     placement.horizontal.androidSize(dip),
-                    placement.vertical.androidSize(dip),
+                    if (placement.vertical.align == Align.Fill) 0 else placement.vertical.androidSize(dip),
                     if (placement.vertical.align == Align.Fill) placement.vertical.size else 0f
             ).apply {
                 gravity = placement.alignPair.android()
-                desiredMargins[subview]?.let {
+                subview.desiredMargins.let {
                     setMargins(it.left, it.top, it.right, it.bottom)
                 }
             }
@@ -611,12 +697,12 @@ class AndroidMaterialViewFactory(
     override fun frame(vararg views: Pair<PlacementPair, View>): View = FrameLayout(context).apply {
         for ((placement, subview) in views) {
             subview.lifecycle.parent = this.lifecycle
-            layoutParams = FrameLayout.LayoutParams(
+            val layoutParams = FrameLayout.LayoutParams(
                     placement.horizontal.androidSize(dip),
                     placement.vertical.androidSize(dip),
                     placement.alignPair.android()
             ).apply {
-                desiredMargins[subview]?.let {
+                subview.desiredMargins.let {
                     setMargins(it.left, it.top, it.right, it.bottom)
                 }
             }
@@ -629,7 +715,7 @@ class AndroidMaterialViewFactory(
 
 
     override fun View.margin(left: Float, top: Float, right: Float, bottom: Float): View {
-        desiredMargins[this] = DesiredMargins(
+        desiredMargins = DesiredMargins(
                 (left * dip).toInt(),
                 (top * dip).toInt(),
                 (right * dip).toInt(),
@@ -645,7 +731,10 @@ class AndroidMaterialViewFactory(
     }
 
     override fun card(view: View): View = CardView(context).apply {
-        setCardBackgroundColor(colorSet.background.toInt())
+        view.desiredMargins.let {
+            setPadding(it.left, it.top, it.right, it.bottom)
+        }
+        setCardBackgroundColor(colorSet.backgroundHighlighted.toInt())
         view.lifecycle.parent = this.lifecycle
         addView(view)
     }
@@ -659,6 +748,4 @@ class AndroidMaterialViewFactory(
     override fun View.clickable(onClick: () -> Unit): View = this.apply {
         setOnClickListener { onClick.invoke() }
     }
-
-
 }

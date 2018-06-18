@@ -7,7 +7,14 @@ import com.lightningkite.kotlinx.ui.AlignPair
 import com.lightningkite.kotlinx.ui.Placement
 
 
-fun Placement.androidSize(dip: Float): Int = if (this.align == Align.Fill) ViewGroup.LayoutParams.MATCH_PARENT else (this.size * dip).toInt()
+fun Placement.androidSize(dip: Float): Int {
+    return if (this.align == Align.Fill)
+        ViewGroup.LayoutParams.MATCH_PARENT
+    else if (this.size == 0f)
+        ViewGroup.LayoutParams.WRAP_CONTENT
+    else
+        (this.size * dip).toInt()
+}
 private val androidGravityMap = mapOf(
         AlignPair.TopLeft to (Gravity.TOP or Gravity.START),
         AlignPair.TopCenter to (Gravity.TOP or Gravity.CENTER_HORIZONTAL),

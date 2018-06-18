@@ -5,12 +5,23 @@ import com.larvalabs.svgandroid.SVG
 import com.larvalabs.svgandroid.SVGBuilder
 import com.lightningkite.kotlinx.ui.Image
 
+private val NumberRegex = Regex("\\d+\\.?\\d*")
 private val SVGCache = HashMap<String, SVG>()
 fun Image.android(): Drawable = when (this) {
     is Image.Bundled -> TODO()
     is Image.Url -> TODO()
     is Image.File -> TODO()
     is Image.EmbeddedSVG -> SVGCache.getOrPut(this.data) {
-        SVGBuilder().readFromString(this.data).build()
+        SVGBuilder().readFromString(
+                this.data.let {
+                    NumberRegex.replace(it) {
+                        it.value.toDouble().times(dip).toString()
+                    }
+                }
+        ).build()
     }.drawable
+}.apply {
+    this@android.size?.let {
+        setBounds(0, 0, (it.x * dip).toInt(), (it.y * dip).toInt())
+    }
 }

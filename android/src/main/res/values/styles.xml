@@ -13,7 +13,7 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <style name="CrossPlatformTheme" parent="Theme.AppCompat">
+    <style name="CrossPlatformTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="headerStyle">
             @style/CrossPlatformThemeDefaultHeaderStyle
         </item>

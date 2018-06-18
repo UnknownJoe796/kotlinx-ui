@@ -97,15 +97,16 @@ data class MaterialJavaFxViewFactory(
 
     override fun text(
             text: ObservableProperty<String>,
-            style: TextStyle,
+            style: Importance,
             size: TextSize,
             align: AlignPair
     ): Node = Label().apply {
         font = Font.font(size.javafx)
         textFill = when (style) {
-            TextStyle.Normal -> colorSet.foreground.toJavaFX()
-            TextStyle.Danger -> Color.red.toJavaFX()
-            TextStyle.Faded -> colorSet.foregroundDisabled.toJavaFX()
+            Importance.Low -> colorSet.foregroundDisabled.toJavaFX()
+            Importance.Normal -> colorSet.foreground.toJavaFX()
+            Importance.High -> colorSet.foregroundHighlighted.toJavaFX()
+            Importance.Danger -> Color.red.toJavaFX()
         }
         alignment = align.javafx
         lifecycle.bind(text) {
@@ -163,11 +164,12 @@ data class MaterialJavaFxViewFactory(
     override fun imageButton(
             image: ObservableProperty<Image>,
             label: ObservableProperty<String?>,
+            importance: Importance,
             onClick: () -> Unit
     ) = JFXButton().apply {
         val parent = this
         contentDisplay = ContentDisplay.GRAPHIC_ONLY
-        graphic = image(Point(32f, 32f), ImageScaleType.Fill, image).apply {
+        graphic = image(image).apply {
             this.lifecycle.parent = parent.lifecycle
         }
         setOnAction {
@@ -175,16 +177,19 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun window(
-            stack: StackObservableProperty<ViewGenerator<Node>>,
-            tabs: List<Pair<TabItem, ViewGenerator<Node>>>,
-            actions: ObservableList<Pair<TabItem, () -> Unit>>
-    ) = defaultLargeWindow(stack, tabs, actions)
 
-    override fun pages(
+    override fun <DEPENDENCY> window(
+            dependency: DEPENDENCY,
+            stack: StackObservableProperty<ViewGenerator<DEPENDENCY, Node>>,
+            tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, Node>>>,
+            actions: ObservableList<Pair<TabItem, () -> Unit>>
+    ): Node = defaultLargeWindow(dependency, stack, tabs, actions)
+
+    override fun <DEPENDENCY> pages(
+            dependency: DEPENDENCY,
             page: MutableObservableProperty<Int>,
-            vararg pageGenerator: ViewGenerator<Node>
-    ): Node = defaultPages(page, *pageGenerator)
+            vararg pageGenerator: ViewGenerator<DEPENDENCY, Node>
+    ): Node = defaultPages(dependency, page, *pageGenerator)
 
     override fun tabs(
             options: ObservableList<TabItem>,
@@ -198,8 +203,6 @@ data class MaterialJavaFxViewFactory(
             Tab(
                     it.text,
                     image(
-                            Point(20f, 20f),
-                            ImageScaleType.Center,
                             ConstantObservableProperty(it.image)
                     )
             )
@@ -351,9 +354,7 @@ data class MaterialJavaFxViewFactory(
         )
     }
 
-    override fun image(minSize: Point, scaleType: ImageScaleType, image: ObservableProperty<Image>) = ImageView().apply {
-        this.fitWidth = minSize.x.times(scale)
-        this.fitHeight = minSize.y.times(scale)
+    override fun image(image: ObservableProperty<Image>) = ImageView().apply {
         lifecycle.bind(image) {
             Thread {
                 val javafx = when (it) {
@@ -363,6 +364,9 @@ data class MaterialJavaFxViewFactory(
                     is Image.EmbeddedSVG -> javafx.scene.image.Image(ByteArrayInputStream(it.data.toByteArray()))
                 }
                 Platform.runLater {
+                    it.size?.x?.times(scale)?.let { this.fitWidth = it }
+                    it.size?.y?.times(scale)?.let { this.fitHeight = it }
+                    //TODO: Scale type
                     this.image = javafx
                 }
             }.start()
@@ -372,9 +376,13 @@ data class MaterialJavaFxViewFactory(
     override fun button(
             label: ObservableProperty<String>,
             image: ObservableProperty<Image?>,
+            importance: Importance,
             onClick: () -> Unit
     ) = JFXButton().apply {
-        this.buttonType = JFXButton.ButtonType.RAISED
+        this.buttonType = if (importance == Importance.Low) JFXButton.ButtonType.FLAT else JFXButton.ButtonType.RAISED
+
+        val colorSet = theme.importance(importance)
+
         background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii.EMPTY, Insets.EMPTY))
         textFill = colorSet.foreground.toJavaFX()
         font = Font.font(TextSize.Body.javafx)
@@ -390,7 +398,7 @@ data class MaterialJavaFxViewFactory(
             label: String,
             help: String?,
             icon: Image?,
-            feedback: ObservableProperty<Pair<TextStyle, String>?>,
+            feedback: ObservableProperty<Pair<Importance, String>?>,
             field: Node
     ): Node = defaultEntryContext(label, help, icon, feedback, field)
 
