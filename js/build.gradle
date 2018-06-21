@@ -1,0 +1,31 @@
+buildscript {
+    ext.kotlin_version = rootProject.kotlinVersion
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.kotlinVersion}"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:${rootProject.dokkaVersion}"
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+    }
+}
+
+apply plugin: 'kotlin-platform-js'
+apply plugin: 'kotlinx-serialization'
+apply from: '../publishing.gradle'
+
+repositories {
+    mavenCentral()
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-js:${rootProject.kotlinVersion}"
+    implementation "com.lightningkite.kotlinx:js:${rootProject.libraryVersion}"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:${rootProject.serializationVersion}"
+    expectedBy project(":common")
+    testImplementation "org.jetbrains.kotlin:kotlin-test-js:${rootProject.kotlinVersion}"
+    testImplementation "org.jetbrains.kotlin:kotlin-test:${rootProject.kotlinVersion}"
+}

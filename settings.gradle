@@ -1,7 +1,9 @@
-include ':common', ':test-android'
+include ':common'
 include ':android'
 include ':javafx'
+include ':js'
 //include ':view-moe'
 include ':test-common'
 include ':test-javafx'
+include ':test-android'
 
