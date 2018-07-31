@@ -1,37 +1,39 @@
 package com.lightningkite.kotlinx.ui.test
 
+import com.lightningkite.kotlinx.httpclient.HttpBody
 import com.lightningkite.kotlinx.httpclient.HttpClient
 import com.lightningkite.kotlinx.httpclient.HttpMethod
 import com.lightningkite.kotlinx.httpclient.HttpResponse
-import com.lightningkite.kotlinx.json.callJson
 import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.transform
+import com.lightningkite.kotlinx.reflection.ExternalReflection
+import com.lightningkite.kotlinx.reflection.KxType
+import com.lightningkite.kotlinx.reflection.KxTypeProjection
+import com.lightningkite.kotlinx.reflection.ListReflection
+import com.lightningkite.kotlinx.serialization.json.callJson
 import com.lightningkite.kotlinx.ui.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.list
-import kotlinx.serialization.serializer
+
+@ExternalReflection
+data class Post(
+        var userId: Long = 0,
+        var id: Long = 0,
+        var title: String = "",
+        var body: String = ""
+)
 
 class WebLoadTestVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "Web Load Test"
 
-    @Serializable
-    data class Post(
-            var userId: Long = 0,
-            var id: Long = 0,
-            var title: String = "",
-            var body: String = ""
-    )
-
     val data = observableListOf<Post>()
 
     init {
-        HttpClient.callJson(
+        HttpClient.callJson<List<Post>>(
                 url = "https://jsonplaceholder.typicode.com/posts",
                 method = HttpMethod.GET,
-                body = Unit,
-                deserializer = Post::class.serializer().list
+                body = HttpBody.EMPTY,
+                typeInfo = KxType(ListReflection, false, listOf(KxTypeProjection(KxType(PostReflection, false))))
         ).invoke {
-            println("JsonHttpTest: $it")
+            //            println("JsonHttpTest: $it")
             if (it is HttpResponse.Success) {
                 data.replace(it.result)
             }

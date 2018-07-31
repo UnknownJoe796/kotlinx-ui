@@ -2,6 +2,8 @@ package com.lightningkite.kotlinx.ui.test
 
 import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
+import com.lightningkite.kotlinx.reflection.KxReflection
+import com.lightningkite.kotlinx.reflection.setupGenerated
 import com.lightningkite.kotlinx.ui.ViewFactory
 import com.lightningkite.kotlinx.ui.ViewGenerator
 
@@ -11,6 +13,10 @@ class MainVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     val stack = StackObservableProperty<ViewGenerator<ViewFactory<VIEW>, VIEW>>()
 
     init {
+        //Startup
+        KxReflection
+        setupGenerated()
+
         stack.push(SelectorVG(stack))
     }
 

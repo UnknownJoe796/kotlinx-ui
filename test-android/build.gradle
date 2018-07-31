@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-platform-android'
-apply plugin: 'kotlinx-serialization'
 
 android {
     compileSdkVersion 27
@@ -40,7 +39,7 @@ dependencies {
 
     implementation "com.android.support:appcompat-v7:27.1.1"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:${rootProject.serializationVersion}"
-    implementation "com.lightningkite.kotlinx:jvm:${rootProject.libraryVersion}"
+    implementation "com.lightningkite.kotlinx:kotlinx-jvm:${rootProject.libraryVersion}"
     expectedBy project(':test-common')
-    implementation project(':android')
+    implementation project(':kotlinx-ui-android')
 }

@@ -5,23 +5,16 @@ buildscript {
     repositories {
         jcenter()
         mavenCentral()
-        mavenLocal()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${rootProject.kotlinVersion}"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${rootProject.dokkaVersion}"
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
-        classpath 'com.lightningkite.kotlinx:kotlinx-reflect-plugin:1.0.0'
     }
 }
 
 apply plugin: 'kotlin-platform-common'
-apply plugin: 'com.lightningkite.kotlinx.reflection'
 apply from: '../publishing.gradle'
-
-sourceSets {
-    main.kotlin.srcDirs += 'build/gen/reflect'
-}
 
 repositories {
     mavenCentral()
@@ -32,7 +25,6 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-common:${rootProject.kotlinVersion}"
     implementation "com.lightningkite.kotlinx:kotlinx-common:${rootProject.libraryVersion}"
-    implementation project(':kotlinx-ui-common')
     testImplementation "org.jetbrains.kotlin:kotlin-test-common:${rootProject.kotlinVersion}"
     testImplementation "org.jetbrains.kotlin:kotlin-test-annotations-common:${rootProject.kotlinVersion}"
 }

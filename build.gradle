@@ -2,7 +2,7 @@
 
 
 buildscript { 
-    ext.kotlin_version = '1.2.41'
+    ext.kotlin_version = '1.2.51'
 
     ext.repositoryGroupName = 'com.lightningkite.kotlinx.ui'
     ext.kotlinVersion = '1.2.41'
@@ -20,7 +20,6 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.1.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
-        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serializationVersion"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
