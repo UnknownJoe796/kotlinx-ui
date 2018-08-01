@@ -4,6 +4,7 @@ import com.lightningkite.kotlinx.observable.list.ObservableList
 import com.lightningkite.kotlinx.observable.list.ObservableListListenerSet
 import com.lightningkite.kotlinx.observable.list.lifecycle.bind
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
+import javafx.collections.FXCollections
 
 
 fun <T> ObservableList<T>.asJavaFX(

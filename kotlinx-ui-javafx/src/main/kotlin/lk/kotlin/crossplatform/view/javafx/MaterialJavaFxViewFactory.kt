@@ -11,10 +11,21 @@ import com.lightningkite.kotlinx.observable.property.*
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
 import com.lightningkite.kotlinx.ui.*
 import com.lightningkite.kotlinx.ui.color.Color
-import com.lightningkite.kotlinx.ui.helper.defaultEntryContext
-import com.lightningkite.kotlinx.ui.helper.defaultLargeWindow
-import com.lightningkite.kotlinx.ui.helper.defaultPages
+import com.lightningkite.kotlinx.ui.helper.*
 import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory
+import javafx.application.Platform
+import javafx.beans.property.Property
+import javafx.beans.property.ReadOnlyProperty
+import javafx.geometry.Insets
+import javafx.scene.Node
+import javafx.scene.control.*
+import javafx.scene.effect.DropShadow
+import javafx.scene.image.ImageView
+import javafx.scene.layout.*
+import javafx.scene.shape.Rectangle
+import javafx.scene.text.Font
+import javafx.scene.web.WebView
+import javafx.util.StringConverter
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileInputStream
@@ -202,11 +213,10 @@ data class MaterialJavaFxViewFactory(
                         mapper = { tabs[options.indexOf(it)] },
                         reverseMapper = { options[tabs.indexOf(it)] }
                 ),
-                this.selectionModel.selectedItemProperty(),
-                { it: Tab ->
-                    selectionModel.select(it)
-                }
-        )
+                this.selectionModel.selectedItemProperty()
+        ) { it: Tab ->
+            selectionModel.select(it)
+        }
     }
 
     override fun <T> list(
@@ -587,30 +597,31 @@ data class MaterialJavaFxViewFactory(
         clip = clipRect
 
         lifecycle.bind(view) { (view, animation) ->
-            val containerSize = Point(
-                    width.toFloat(),
-                    height.toFloat()
-            )
-            currentView?.let { old ->
-                animation.javaFxOut(old, containerSize).apply {
-                    setOnFinished {
-                        old.lifecycle.parent = null
-                        children.remove(old)
-                    }
-                }.play()
-            }
-
-            children += view.apply {
-                this.lifecycle.parent = parent.lifecycle
-                StackPane.setAlignment(view, AlignPair.CenterCenter.javafx)
-                desiredMargins[this]?.let { StackPane.setMargin(this, it) }
-                if (currentView != null) {
-                    animation.javaFxIn(this, containerSize).play()
+            Platform.runLater {
+                val containerSize = Point(
+                        width.toFloat(),
+                        height.toFloat()
+                )
+                currentView?.let { old ->
+                    animation.javaFxOut(old, containerSize).apply {
+                        setOnFinished {
+                            old.lifecycle.parent = null
+                            children.remove(old)
+                        }
+                    }.play()
                 }
 
-            }
-            currentView = view
+                children += view.apply {
+                    this.lifecycle.parent = parent.lifecycle
+                    StackPane.setAlignment(view, AlignPair.CenterCenter.javafx)
+                    desiredMargins[this]?.let { StackPane.setMargin(this, it) }
+                    if (currentView != null) {
+                        animation.javaFxIn(this, containerSize).play()
+                    }
 
+                }
+                currentView = view
+            }
         }
     }
 

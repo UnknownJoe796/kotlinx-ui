@@ -33,7 +33,6 @@ class WebLoadTestVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
                 body = HttpBody.EMPTY,
                 typeInfo = KxType(ListReflection, false, listOf(KxTypeProjection(KxType(PostReflection, false))))
         ).invoke {
-            //            println("JsonHttpTest: $it")
             if (it is HttpResponse.Success) {
                 data.replace(it.result)
             }

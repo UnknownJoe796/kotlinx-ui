@@ -1,5 +1,9 @@
 package lk.kotlin.crossplatform.view.javafx
 
+import javafx.collections.FXCollections
+import javafx.collections.ObservableList
+import javafx.scene.control.MultipleSelectionModel
+
 class NoSelectionModel<T> : MultipleSelectionModel<T>() {
 
     override fun getSelectedIndices(): ObservableList<Int> {
