@@ -60,7 +60,7 @@ var View.desiredMargins: DesiredMargins
 
 var dip = 1f
 
-class AndroidMaterialViewFactory(
+open class AndroidMaterialViewFactory(
         val access: ActivityAccess,
         override val theme: Theme,
         override val colorSet: ColorSet = theme.main

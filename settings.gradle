@@ -1,6 +1,7 @@
 include ':kotlinx-ui-common'
 include ':kotlinx-ui-android'
 include ':kotlinx-ui-javafx'
+include ':kotlinx-ui-js'
 //include ':view-moe'
 include ':test-common'
 include ':test-javafx'

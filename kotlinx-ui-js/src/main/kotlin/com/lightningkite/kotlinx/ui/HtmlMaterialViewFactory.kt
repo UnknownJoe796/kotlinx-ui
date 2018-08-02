@@ -9,10 +9,7 @@ import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
 import com.lightningkite.kotlinx.ui.color.Color
-import org.w3c.dom.HTMLDivElement
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLHeadingElement
-import org.w3c.dom.HTMLParagraphElement
+import org.w3c.dom.*
 import kotlin.browser.document
 import kotlin.dom.addClass
 
@@ -101,9 +98,11 @@ class HtmlMaterialViewFactory(
         }
     }
 
-    override fun image(image: ObservableProperty<Image>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun image(image: ObservableProperty<Image>): HTMLElement = document.createElement("img")
+            .let { it as HTMLImageElement }
+            .apply {
+                this.
+            }
 
     override fun web(content: ObservableProperty<String>): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
