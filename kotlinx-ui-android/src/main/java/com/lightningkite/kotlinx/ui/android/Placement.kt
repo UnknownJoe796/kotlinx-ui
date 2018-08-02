@@ -2,19 +2,16 @@ package com.lightningkite.kotlinx.ui.android
 
 import android.view.Gravity
 import android.view.ViewGroup
-import com.lightningkite.kotlinx.ui.Align
-import com.lightningkite.kotlinx.ui.AlignPair
-import com.lightningkite.kotlinx.ui.Placement
+import com.lightningkite.kotlinx.ui.geometry.Align
+import com.lightningkite.kotlinx.ui.geometry.AlignPair
 
-
-fun Placement.androidSize(dip: Float): Int {
-    return if (this.align == Align.Fill)
+fun Align.androidSize(): Int {
+    return if (this == Align.Fill)
         ViewGroup.LayoutParams.MATCH_PARENT
-    else if (this.size == 0f)
-        ViewGroup.LayoutParams.WRAP_CONTENT
     else
-        (this.size * dip).toInt()
+        ViewGroup.LayoutParams.WRAP_CONTENT
 }
+
 private val androidGravityMap = mapOf(
         AlignPair.TopLeft to (Gravity.TOP or Gravity.START),
         AlignPair.TopCenter to (Gravity.TOP or Gravity.CENTER_HORIZONTAL),
@@ -35,3 +32,17 @@ private val androidGravityMap = mapOf(
 )
 
 fun AlignPair.android() = androidGravityMap[this]!!
+
+fun Align.androidHorizontal() = when (this) {
+    Align.Start -> Gravity.START
+    Align.Center -> Gravity.CENTER_HORIZONTAL
+    Align.End -> Gravity.END
+    Align.Fill -> Gravity.CENTER_HORIZONTAL
+}
+
+fun Align.androidVertical() = when (this) {
+    Align.Start -> Gravity.TOP
+    Align.Center -> Gravity.CENTER_VERTICAL
+    Align.End -> Gravity.BOTTOM
+    Align.Fill -> Gravity.CENTER_VERTICAL
+}

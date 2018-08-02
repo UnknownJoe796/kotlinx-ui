@@ -1,6 +1,6 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.geometry
 
-import com.lightningkite.kotlinx.ui.Align.*
+import com.lightningkite.kotlinx.ui.geometry.Align.*
 
 enum class AlignPair(val horizontal: Align, val vertical: Align) {
     TopLeft(Start, Start),

@@ -1,8 +1,8 @@
 package com.lightningkite.kotlinx.ui.test
 
-import com.lightningkite.kotlinx.ui.Point
-import com.lightningkite.kotlinx.ui.ViewFactory
-import com.lightningkite.kotlinx.ui.ViewGenerator
+import com.lightningkite.kotlinx.ui.geometry.Point
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
 
 class SpaceTestVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "Space"

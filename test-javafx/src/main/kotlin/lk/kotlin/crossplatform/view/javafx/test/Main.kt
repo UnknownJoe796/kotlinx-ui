@@ -1,7 +1,7 @@
 package lk.kotlin.crossplatform.view.javafx.test
 
 import com.lightningkite.kotlinx.httpclient.HttpClient
-import com.lightningkite.kotlinx.ui.Theme
+import com.lightningkite.kotlinx.ui.color.Theme
 import com.lightningkite.kotlinx.ui.test.MainVG
 import javafx.application.Application
 import javafx.application.Platform

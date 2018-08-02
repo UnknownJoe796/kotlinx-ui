@@ -5,9 +5,9 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import com.lightningkite.kotlinx.httpclient.HttpClient
-import com.lightningkite.kotlinx.ui.Theme
 import com.lightningkite.kotlinx.ui.android.AndroidMaterialViewFactory
 import com.lightningkite.kotlinx.ui.android.lifecycle
+import com.lightningkite.kotlinx.ui.color.Theme
 import com.lightningkite.kotlinx.ui.test.MainVG
 import lk.android.activity.access.AccessibleActivity
 

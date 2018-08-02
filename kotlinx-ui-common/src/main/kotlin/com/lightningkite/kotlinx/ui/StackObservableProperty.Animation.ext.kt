@@ -3,6 +3,7 @@ package com.lightningkite.kotlinx.ui
 import com.lightningkite.kotlinx.observable.property.ObservablePropertyMapped
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.observable.property.transform
+import com.lightningkite.kotlinx.ui.concepts.Animation
 
 fun <T> StackObservableProperty<T>.withAnimations(
         push: Animation = Animation.Push,

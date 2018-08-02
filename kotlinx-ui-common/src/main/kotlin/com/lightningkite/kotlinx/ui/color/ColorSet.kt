@@ -1,6 +1,6 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.color
 
-import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.concepts.Importance
 
 data class ColorSet(
         val background: Color = Color.white,
@@ -15,13 +15,13 @@ data class ColorSet(
         Importance.Low -> foregroundDisabled
         Importance.Normal -> foreground
         Importance.High -> foregroundHighlighted
-        Importance.Danger -> ColorSet.destructive.foreground
+        Importance.Danger -> destructive.foreground
     }
 
     companion object {
         fun basedOnBack(color: Color) = ColorSet(
                 background = color,
-                foreground = if (color.average > .5f) Color.black else Color.white
+                foreground = if (color.average > .7f) Color.black else Color.white
         )
 
         val destructive = basedOnBack(Color.red)

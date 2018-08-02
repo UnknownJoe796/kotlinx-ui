@@ -1,4 +1,4 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.geometry
 
 data class Rectangle(
         var x: Float = 0f,

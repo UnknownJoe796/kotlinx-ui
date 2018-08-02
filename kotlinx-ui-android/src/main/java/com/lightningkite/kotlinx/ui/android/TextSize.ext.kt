@@ -1,6 +1,6 @@
 package com.lightningkite.kotlinx.ui.android
 
-import com.lightningkite.kotlinx.ui.TextSize
+import com.lightningkite.kotlinx.ui.concepts.TextSize
 
 
 fun TextSize.sp(): Float = when (this) {

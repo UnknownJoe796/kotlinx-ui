@@ -1,7 +1,7 @@
-package com.lightningkite.kotlinx.ui.virtual
+package com.lightningkite.kotlinx.ui.views.virtual
 
 import com.lightningkite.kotlinx.collection.recursiveFlatMap
-import com.lightningkite.kotlinx.ui.Rectangle
+import com.lightningkite.kotlinx.ui.geometry.Rectangle
 
 abstract class View {
     var location: Rectangle = Rectangle()

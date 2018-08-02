@@ -1,4 +1,4 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.views
 
 import com.lightningkite.kotlinx.locale.Date
 import com.lightningkite.kotlinx.locale.DateTime
@@ -9,19 +9,33 @@ import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.concepts.*
+import com.lightningkite.kotlinx.ui.geometry.AlignPair
+import com.lightningkite.kotlinx.ui.geometry.LinearPlacement
+import com.lightningkite.kotlinx.ui.geometry.Point
 
+/**
+ * PHILOSOPHY
+ *
+ * The views will function and appear according to the underlying platform.  Styling does
+ * not take place at this interface layer.
+ *
+ * Thus, every function here is meant to represent a concept rather than a specific widget.
+ *
+ * This interface is meant to be extended and added upon, and only represents the most basic of
+ * views needed for creating an app.
+ *
+ * Layout does take place at this layer, and is meant to be good at resizing.
+ *
+ * All views are automatically sized unless stated otherwise - either shrinking as small as possible
+ * or growing as large as possible.
+ *
+ * The defaults for spacing are set to look both clean and good - modify them deliberately.
+ *
+ * The returned view objects are only meant to be used in composing with other views in the factory.
+ * Do not attempt to store references to them long-term or anything of the sort.
+ */
 interface ViewFactory<VIEW> {
-
-    //Theme
-
-    val theme: Theme
-    val colorSet: ColorSet
-
-    /**
-     * Returns another factory that uses the given color set.
-     * Used when changing themes or making a dialog.
-     */
-    fun withColorSet(colorSet: ColorSet): ViewFactory<VIEW>
 
     //Navigation
 
@@ -88,7 +102,8 @@ interface ViewFactory<VIEW> {
 
     /**
      * Shows a webpage within this view.
-     * If the string starts with 'http', it will be interpreted as a URL.
+     * If the string starts with 'http://', it will be interpreted as a URL.
+     * Otherwise, it will be interpreted as non-interactive HTML content.
      */
     fun web(
             content: ObservableProperty<String>
@@ -264,7 +279,7 @@ interface ViewFactory<VIEW> {
      * The placement pairs determine whether or not the elements are stretched or shifted around.
      */
     fun horizontal(
-            vararg views: Pair<PlacementPair, VIEW>
+            vararg views: Pair<LinearPlacement, VIEW>
     ): VIEW
 
     /**
@@ -272,7 +287,7 @@ interface ViewFactory<VIEW> {
      * The placement pairs determine whether or not the elements are stretched or shifted around.
      */
     fun vertical(
-            vararg views: Pair<PlacementPair, VIEW>
+            vararg views: Pair<LinearPlacement, VIEW>
     ): VIEW
 
     /**
@@ -280,7 +295,7 @@ interface ViewFactory<VIEW> {
      * The placement pairs determine whether or not the elements are stretched or shifted around.
      */
     fun frame(
-            vararg views: Pair<PlacementPair, VIEW>
+            vararg views: Pair<AlignPair, VIEW>
     ): VIEW
 
     /**
@@ -307,10 +322,10 @@ interface ViewFactory<VIEW> {
     fun VIEW.background(
             color: ObservableProperty<Color>
     ): VIEW
+
     fun VIEW.background(
             color: Color
     ): VIEW = background(ConstantObservableProperty(color))
-    fun VIEW.background(): VIEW = background(ConstantObservableProperty(colorSet.background))
 
     /**
      * Changes the alpha of a view.
@@ -318,6 +333,7 @@ interface ViewFactory<VIEW> {
     fun VIEW.alpha(
             alpha: ObservableProperty<Float>
     ): VIEW
+
     fun VIEW.alpha(
             alpha: Float
     ): VIEW = alpha(ConstantObservableProperty(alpha))
@@ -329,8 +345,16 @@ interface ViewFactory<VIEW> {
             onClick: () -> Unit
     ): VIEW
 
+    /**
+     * Forces the view to be of a certain size
+     */
+    fun VIEW.setWidth(width: Float): VIEW
 
-    //Extensions
+    /**
+     * Forces the view to be of a certain size
+     */
+    fun VIEW.setHeight(height: Float): VIEW
+
     fun VIEW.margin(
             horizontal: Float = 0f,
             top: Float = 0f,

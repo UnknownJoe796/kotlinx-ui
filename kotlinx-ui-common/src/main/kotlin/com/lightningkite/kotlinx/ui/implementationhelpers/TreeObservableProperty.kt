@@ -1,4 +1,4 @@
-package com.lightningkite.kotlinx.ui.helper
+package com.lightningkite.kotlinx.ui.implementationhelpers
 
 import com.lightningkite.kotlinx.collection.WeakHashMap
 import com.lightningkite.kotlinx.lambda.invokeAll

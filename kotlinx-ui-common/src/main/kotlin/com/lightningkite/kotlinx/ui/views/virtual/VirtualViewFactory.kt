@@ -1,4 +1,4 @@
-package com.lightningkite.kotlinx.ui.virtual
+package com.lightningkite.kotlinx.ui.views.virtual
 
 //object VirtualViewFactory : ViewFactory<View> {
 //}

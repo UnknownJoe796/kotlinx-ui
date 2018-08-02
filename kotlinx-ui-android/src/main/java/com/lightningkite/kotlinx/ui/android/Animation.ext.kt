@@ -1,6 +1,6 @@
 package com.lightningkite.kotlinx.ui.android
 
-import com.lightningkite.kotlinx.ui.Animation
+import com.lightningkite.kotlinx.ui.concepts.Animation
 
 
 fun Animation.android(): AnimationSet = when (this) {

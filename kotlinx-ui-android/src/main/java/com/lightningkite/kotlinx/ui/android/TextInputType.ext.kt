@@ -1,7 +1,7 @@
 package com.lightningkite.kotlinx.ui.android
 
 import android.text.InputType
-import com.lightningkite.kotlinx.ui.TextInputType
+import com.lightningkite.kotlinx.ui.concepts.TextInputType
 
 fun TextInputType.android(): Int = when (this) {
     TextInputType.Paragraph -> InputType.TYPE_CLASS_TEXT or

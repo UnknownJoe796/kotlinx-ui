@@ -10,6 +10,7 @@ import android.graphics.drawable.shapes.OvalShape
 import android.os.Build
 import android.support.design.widget.TabLayout
 import android.support.v4.view.PagerAdapter
+import android.support.v4.view.ViewCompat
 import android.support.v4.view.ViewPager
 import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.CardView
@@ -32,39 +33,33 @@ import com.lightningkite.kotlinx.observable.list.lifecycle.bind
 import com.lightningkite.kotlinx.observable.property.*
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
 import com.lightningkite.kotlinx.observable.property.lifecycle.listen
-import com.lightningkite.kotlinx.ui.*
+import com.lightningkite.kotlinx.ui.builders.button
+import com.lightningkite.kotlinx.ui.builders.frame
+import com.lightningkite.kotlinx.ui.builders.horizontal
+import com.lightningkite.kotlinx.ui.builders.vertical
 import com.lightningkite.kotlinx.ui.color.Color
-import com.lightningkite.kotlinx.ui.helper.TreeObservableProperty
-import com.lightningkite.kotlinx.ui.helper.defaultEntryContext
-import com.lightningkite.kotlinx.ui.helper.defaultSmallWindow
+import com.lightningkite.kotlinx.ui.color.ColorSet
+import com.lightningkite.kotlinx.ui.color.Theme
+import com.lightningkite.kotlinx.ui.color.ThemedViewFactory
+import com.lightningkite.kotlinx.ui.concepts.*
+import com.lightningkite.kotlinx.ui.geometry.AlignPair
+import com.lightningkite.kotlinx.ui.geometry.LinearPlacement
+import com.lightningkite.kotlinx.ui.geometry.Point
+import com.lightningkite.kotlinx.ui.implementationhelpers.TreeObservableProperty
+import com.lightningkite.kotlinx.ui.implementationhelpers.defaultEntryContext
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
+import com.lightningkite.kotlinx.ui.withAnimations
 import lk.android.activity.access.ActivityAccess
 import java.text.DecimalFormat
 import java.text.ParseException
 import java.util.*
 
-data class DesiredMargins(val left: Int, val top: Int, val right: Int, val bottom: Int)
-
-private val ViewDesiredMargins = WeakHashMap<View, DesiredMargins>()
-var View.desiredMargins: DesiredMargins
-    get() = ViewDesiredMargins.getOrPut(this) {
-        val size = when (this) {
-            is CardView -> (8 * dip).toInt()
-            is LinearLayout, is FrameLayout, is RecyclerView -> 0
-            else -> (8 * dip).toInt()
-        }
-        return DesiredMargins(size, size, size, size)
-    }
-    set(value) {
-        ViewDesiredMargins[this] = value
-    }
-
-var dip = 1f
-
 open class AndroidMaterialViewFactory(
         val access: ActivityAccess,
         override val theme: Theme,
         override val colorSet: ColorSet = theme.main
-) : ViewFactory<View> {
+) : ViewFactory<View>, ThemedViewFactory<AndroidMaterialViewFactory> {
 
     val context = access.context
 
@@ -72,14 +67,52 @@ open class AndroidMaterialViewFactory(
         dip = context.resources.displayMetrics.density
     }
 
-    override fun withColorSet(colorSet: ColorSet): ViewFactory<View> = AndroidMaterialViewFactory(access = access, theme = theme, colorSet = colorSet)
+    override fun withColorSet(colorSet: ColorSet) = AndroidMaterialViewFactory(access = access, theme = theme, colorSet = colorSet)
 
     override fun <DEPENDENCY> window(
             dependency: DEPENDENCY,
             stack: StackObservableProperty<ViewGenerator<DEPENDENCY, View>>,
             tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, View>>>,
             actions: ObservableList<Pair<TabItem, () -> Unit>>
-    ): View = defaultSmallWindow(dependency, stack, tabs, actions).apply {
+    ): View = vertical {
+        -with(withColorSet(theme.bar)) {
+            horizontal {
+                defaultAlign = com.lightningkite.kotlinx.ui.geometry.Align.Center
+                -imageButton(
+                        image = com.lightningkite.kotlinx.observable.property.ConstantObservableProperty(com.lightningkite.kotlinx.ui.concepts.BuiltInSVGs.back(theme.bar.foreground)),
+                        onClick = { stack.popOrFalse() }
+                ).alpha(stack.transform { if (stack.stack.size > 1) 1f else 0f })
+
+                -text(text = stack.transform { it.title }, size = com.lightningkite.kotlinx.ui.concepts.TextSize.Header)
+
+                +space(com.lightningkite.kotlinx.ui.geometry.Point(5f, 5f))
+
+                -swap(actions.onUpdate.transform {
+                    horizontal {
+                        defaultAlign = com.lightningkite.kotlinx.ui.geometry.Align.Center
+                        for (item in it) {
+                            -button(item.first.text, item.first.image) { item.second.invoke() }
+                        }
+                    } to com.lightningkite.kotlinx.ui.concepts.Animation.Fade
+                })
+            }.background(theme.bar.background).apply {
+                ViewCompat.setElevation(this, dip * 4f)
+            }
+        }
+
+        +swap(stack.withAnimations().transform { it.first.generate(dependency) to it.second })
+                .background(theme.main.background)
+
+        if (!tabs.isEmpty()) {
+            -horizontal {
+                for (tab in tabs) {
+                    +button(tab.first.text, tab.first.image) {
+                        stack.reset(tab.second)
+                    }
+                }
+            }
+        }
+    }.apply {
         lifecycle.listen(access.onBackPressed) {
             stack.popOrFalse()
         }
@@ -90,7 +123,8 @@ open class AndroidMaterialViewFactory(
             page: MutableObservableProperty<Int>,
             vararg pageGenerator: ViewGenerator<DEPENDENCY, View>
     ): View = frame {
-        PlacementPair.fillFill + ViewPager(context).apply {
+        AlignPair.FillFill + ViewPager(context).apply {
+            var iSet = false
             adapter = object : PagerAdapter() {
                 override fun isViewFromObject(view: View, `object`: Any): Boolean = view == `object`
 
@@ -111,12 +145,19 @@ open class AndroidMaterialViewFactory(
                 override fun onPageScrollStateChanged(state: Int) {}
                 override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
                 override fun onPageSelected(position: Int) {
+                    iSet = true
                     page.value = position
                 }
             })
-            //TODO: Listen for changes to page number
+            lifecycle.bind(page) {
+                if (iSet) {
+                    iSet = false
+                    return@bind
+                }
+                this.setCurrentItem(it, false)
+            }
         }
-        PlacementPair.bottomCenter + text(text = page.transform { "${it + 1} / ${pageGenerator.size}" }, size = TextSize.Tiny)
+        AlignPair.BottomCenter + text(text = page.transform { "${it + 1} / ${pageGenerator.size}" }, size = TextSize.Tiny)
     }
 
     override fun tabs(options: ObservableList<TabItem>, selected: MutableObservableProperty<TabItem>): View = TabLayout(context).apply {
@@ -652,16 +693,16 @@ open class AndroidMaterialViewFactory(
         minimumHeight = (size.y * dip).toInt()
     }
 
-    override fun horizontal(vararg views: Pair<PlacementPair, View>): View = LinearLayout(context).apply {
+    override fun horizontal(vararg views: Pair<LinearPlacement, View>): View = LinearLayout(context).apply {
         orientation = LinearLayout.HORIZONTAL
         for ((placement, subview) in views) {
             subview.lifecycle.parent = this.lifecycle
             val layoutParams = LinearLayout.LayoutParams(
-                    if (placement.horizontal.align == Align.Fill) 0 else placement.horizontal.androidSize(dip),
-                    placement.vertical.androidSize(dip),
-                    if (placement.horizontal.align == Align.Fill) placement.horizontal.size else 0f
+                    if (placement.weight == 0f) WRAP_CONTENT else 0,
+                    subview.desiredHeight ?: placement.align.androidSize(),
+                    placement.weight
             ).apply {
-                gravity = placement.alignPair.android()
+                gravity = placement.align.androidVertical()
                 subview.desiredMargins.let {
                     setMargins(it.left, it.top, it.right, it.bottom)
                 }
@@ -673,16 +714,16 @@ open class AndroidMaterialViewFactory(
         }
     }
 
-    override fun vertical(vararg views: Pair<PlacementPair, View>): View = LinearLayout(context).apply {
+    override fun vertical(vararg views: Pair<LinearPlacement, View>): View = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL
         for ((placement, subview) in views) {
             subview.lifecycle.parent = this.lifecycle
             val layoutParams = LinearLayout.LayoutParams(
-                    placement.horizontal.androidSize(dip),
-                    if (placement.vertical.align == Align.Fill) 0 else placement.vertical.androidSize(dip),
-                    if (placement.vertical.align == Align.Fill) placement.vertical.size else 0f
+                    subview.desiredWidth ?: placement.align.androidSize(),
+                    if (placement.weight == 0f) WRAP_CONTENT else 0,
+                    placement.weight
             ).apply {
-                gravity = placement.alignPair.android()
+                gravity = placement.align.androidHorizontal()
                 subview.desiredMargins.let {
                     setMargins(it.left, it.top, it.right, it.bottom)
                 }
@@ -694,13 +735,13 @@ open class AndroidMaterialViewFactory(
         }
     }
 
-    override fun frame(vararg views: Pair<PlacementPair, View>): View = FrameLayout(context).apply {
+    override fun frame(vararg views: Pair<AlignPair, View>): View = FrameLayout(context).apply {
         for ((placement, subview) in views) {
             subview.lifecycle.parent = this.lifecycle
             val layoutParams = FrameLayout.LayoutParams(
-                    placement.horizontal.androidSize(dip),
-                    placement.vertical.androidSize(dip),
-                    placement.alignPair.android()
+                    subview.desiredWidth ?: placement.horizontal.androidSize(),
+                    subview.desiredHeight ?: placement.vertical.androidSize(),
+                    placement.android()
             ).apply {
                 subview.desiredMargins.let {
                     setMargins(it.left, it.top, it.right, it.bottom)
@@ -728,6 +769,16 @@ open class AndroidMaterialViewFactory(
         lifecycle.bind(color) {
             setBackgroundColor(it.toInt())
         }
+    }
+
+    override fun View.setWidth(width: Float): View {
+        this.desiredWidth = (width * dip).toInt()
+        return this
+    }
+
+    override fun View.setHeight(height: Float): View {
+        this.desiredHeight = (height * dip).toInt()
+        return this
     }
 
     override fun card(view: View): View = CardView(context).apply {

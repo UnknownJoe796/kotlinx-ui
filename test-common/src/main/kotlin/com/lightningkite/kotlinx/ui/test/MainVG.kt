@@ -4,8 +4,8 @@ import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.reflection.KxReflection
 import com.lightningkite.kotlinx.reflection.setupGenerated
-import com.lightningkite.kotlinx.ui.ViewFactory
-import com.lightningkite.kotlinx.ui.ViewGenerator
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
 
 class MainVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "KotlinX UI Test"

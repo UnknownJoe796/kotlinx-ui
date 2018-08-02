@@ -1,7 +1,13 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.builders
 
 import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
 import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
+import com.lightningkite.kotlinx.ui.concepts.Image
+import com.lightningkite.kotlinx.ui.concepts.TextSize
+import com.lightningkite.kotlinx.ui.geometry.AlignPair
+import com.lightningkite.kotlinx.ui.geometry.Point
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
 
 fun <VIEW> ViewFactory<VIEW>.text(
         size: TextSize = TextSize.Body,

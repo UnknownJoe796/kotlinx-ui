@@ -9,7 +9,20 @@ import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
 import com.lightningkite.kotlinx.ui.color.Color
-import org.w3c.dom.*
+import com.lightningkite.kotlinx.ui.color.ColorSet
+import com.lightningkite.kotlinx.ui.color.Theme
+import com.lightningkite.kotlinx.ui.color.ThemedViewFactory
+import com.lightningkite.kotlinx.ui.concepts.*
+import com.lightningkite.kotlinx.ui.geometry.Align
+import com.lightningkite.kotlinx.ui.geometry.AlignPair
+import com.lightningkite.kotlinx.ui.geometry.LinearPlacement
+import com.lightningkite.kotlinx.ui.geometry.Point
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
+import org.w3c.dom.HTMLElement
+import org.w3c.dom.HTMLHeadingElement
+import org.w3c.dom.HTMLImageElement
+import org.w3c.dom.HTMLParagraphElement
 import kotlin.browser.document
 import kotlin.dom.addClass
 
@@ -17,9 +30,9 @@ import kotlin.dom.addClass
 class HtmlMaterialViewFactory(
         override val theme: Theme,
         override val colorSet: ColorSet
-) : ViewFactory<HTMLElement> {
+) : ViewFactory<HTMLElement>, ThemedViewFactory<HtmlMaterialViewFactory> {
 
-    override fun withColorSet(colorSet: ColorSet): ViewFactory<HTMLElement> = HtmlMaterialViewFactory(theme, colorSet)
+    override fun withColorSet(colorSet: ColorSet) = HtmlMaterialViewFactory(theme, colorSet)
 
     override fun <DEPENDENCY> window(dependency: DEPENDENCY, stack: StackObservableProperty<ViewGenerator<DEPENDENCY, HTMLElement>>, tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, HTMLElement>>>, actions: ObservableList<Pair<TabItem, () -> Unit>>): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -101,7 +114,6 @@ class HtmlMaterialViewFactory(
     override fun image(image: ObservableProperty<Image>): HTMLElement = document.createElement("img")
             .let { it as HTMLImageElement }
             .apply {
-                this.
             }
 
     override fun web(content: ObservableProperty<String>): HTMLElement {
@@ -180,20 +192,23 @@ class HtmlMaterialViewFactory(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun horizontal(
-            vararg views: Pair<PlacementPair, HTMLElement>
-    ): HTMLElement = document.createElement("div").let { it as HTMLDivElement }.apply {
-        addClass("BoxHorizontal")
-        for ((placement, view) in views) {
-            appen
-        }
-    }
-
-    override fun vertical(vararg views: Pair<PlacementPair, HTMLElement>): HTMLElement {
+    override fun horizontal(vararg views: Pair<LinearPlacement, HTMLElement>): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun frame(vararg views: Pair<PlacementPair, HTMLElement>): HTMLElement {
+    override fun vertical(vararg views: Pair<LinearPlacement, HTMLElement>): HTMLElement {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun frame(vararg views: Pair<AlignPair, HTMLElement>): HTMLElement {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun HTMLElement.setWidth(width: Float): HTMLElement {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun HTMLElement.setHeight(height: Float): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

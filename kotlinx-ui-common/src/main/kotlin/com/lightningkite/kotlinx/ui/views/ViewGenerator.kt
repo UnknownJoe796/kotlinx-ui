@@ -1,4 +1,4 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.views
 
 interface ViewGenerator<in DEPENDENCY, out VIEW> {
     val title: String get() = ""

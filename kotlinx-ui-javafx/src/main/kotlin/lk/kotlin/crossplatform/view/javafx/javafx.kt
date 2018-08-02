@@ -1,9 +1,9 @@
 package lk.kotlin.crossplatform.view.javafx
 
-import com.lightningkite.kotlinx.ui.AlignPair
-import com.lightningkite.kotlinx.ui.Animation
-import com.lightningkite.kotlinx.ui.Point
 import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.concepts.Animation
+import com.lightningkite.kotlinx.ui.geometry.AlignPair
+import com.lightningkite.kotlinx.ui.geometry.Point
 import javafx.animation.FadeTransition
 import javafx.animation.ScaleTransition
 import javafx.animation.Transition

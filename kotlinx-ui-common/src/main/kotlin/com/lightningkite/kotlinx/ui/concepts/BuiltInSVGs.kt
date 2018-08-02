@@ -1,8 +1,7 @@
-package com.lightningkite.kotlinx.ui.helper
+package com.lightningkite.kotlinx.ui.concepts
 
-import com.lightningkite.kotlinx.ui.Image
-import com.lightningkite.kotlinx.ui.Point
 import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.geometry.Point
 
 object BuiltInSVGs {
     fun back(color: Color) = Image.EmbeddedSVG("""<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">

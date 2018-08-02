@@ -1,7 +1,7 @@
 package com.lightningkite.kotlinx.ui.android
 
 import android.text.InputType
-import com.lightningkite.kotlinx.ui.NumberInputType
+import com.lightningkite.kotlinx.ui.concepts.NumberInputType
 
 fun NumberInputType.android(): Int = when (this) {
     NumberInputType.Integer -> InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED

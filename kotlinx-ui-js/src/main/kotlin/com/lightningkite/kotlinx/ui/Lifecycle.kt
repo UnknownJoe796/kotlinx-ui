@@ -1,7 +1,7 @@
 package com.lightningkite.kotlinx.ui
 
-import com.lightningkite.kotlinx.ui.helper.AnyLifecycles
-import com.lightningkite.kotlinx.ui.helper.TreeObservableProperty
+import com.lightningkite.kotlinx.ui.implementationhelpers.AnyLifecycles
+import com.lightningkite.kotlinx.ui.implementationhelpers.TreeObservableProperty
 import org.w3c.dom.HTMLElement
 
 

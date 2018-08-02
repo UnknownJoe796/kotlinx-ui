@@ -1,10 +1,10 @@
-package com.lightningkite.kotlinx.ui
+package com.lightningkite.kotlinx.ui.color
 
-import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.concepts.Importance
 
 data class Theme(
         val main: ColorSet = ColorSet(),
-        val bar: ColorSet = ColorSet.basedOnBack(Color.fromInt(0xFF6200EE.toInt())),
+        val bar: ColorSet = ColorSet.basedOnBack(Color.fromInt(0xFF5370CE.toInt())),
         val accent: ColorSet = ColorSet.basedOnBack(Color.fromInt(0xFFD82222.toInt()))
 ) {
 
@@ -17,7 +17,7 @@ data class Theme(
 
     companion object {
         fun light(
-                primaryColor: Color = Color.fromInt(0xFF6200EE.toInt()),
+                primaryColor: Color = Color.fromInt(0xFF5370CE.toInt()),
                 secondaryColor: Color = Color.fromInt(0xFFD82222.toInt())
         ) = Theme(
                 main = ColorSet.basedOnBack(Color.white),
@@ -26,7 +26,7 @@ data class Theme(
         )
 
         fun dark(
-                primaryColor: Color = Color.fromInt(0xFF6200EE.toInt()),
+                primaryColor: Color = Color.fromInt(0xFF5370CE.toInt()),
                 secondaryColor: Color = Color.fromInt(0xFFD82222.toInt())
         ) = Theme(
                 main = ColorSet.basedOnBack(Color.gray(.1f)),
