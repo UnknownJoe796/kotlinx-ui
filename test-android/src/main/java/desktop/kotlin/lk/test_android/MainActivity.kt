@@ -6,14 +6,16 @@ import android.os.Looper
 import android.view.View
 import com.lightningkite.kotlinx.httpclient.HttpClient
 import com.lightningkite.kotlinx.ui.android.AndroidMaterialViewFactory
+import com.lightningkite.kotlinx.ui.android.access.AccessibleActivity
 import com.lightningkite.kotlinx.ui.android.lifecycle
 import com.lightningkite.kotlinx.ui.color.Theme
 import com.lightningkite.kotlinx.ui.test.MainVG
-import lk.android.activity.access.AccessibleActivity
 
 class MainActivity : AccessibleActivity() {
 
-    val main = MainVG<View>()
+    companion object {
+        val main = MainVG<View>()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

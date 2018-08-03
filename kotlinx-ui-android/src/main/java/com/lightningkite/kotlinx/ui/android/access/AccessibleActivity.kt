@@ -1,4 +1,4 @@
-package lk.android.activity.access
+package com.lightningkite.kotlinx.ui.android.access
 
 
 import android.annotation.TargetApi
@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import lk.android.activity.access.ActivityAccess
 import java.util.*
 
 /**
