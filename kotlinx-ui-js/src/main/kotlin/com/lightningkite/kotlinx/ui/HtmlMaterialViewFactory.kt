@@ -8,7 +8,9 @@ import com.lightningkite.kotlinx.observable.property.MutableObservableProperty
 import com.lightningkite.kotlinx.observable.property.ObservableProperty
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
+import com.lightningkite.kotlinx.observable.property.transform
 import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.helper.BuiltInSVGs
 import org.w3c.dom.*
 import kotlin.browser.document
 import kotlin.dom.addClass
@@ -98,27 +100,108 @@ class HtmlMaterialViewFactory(
         }
     }
 
-    override fun image(image: ObservableProperty<Image>): HTMLElement = document.createElement("img")
+    override fun image(image: ObservableProperty<Image>): HTMLImageElement = document.createElement("img")
             .let { it as HTMLImageElement }
             .apply {
-                this.
+                lifecycle.bind(image) {
+                    val url = when (it) {
+                        is Image.Bundled -> "/${it.identifier}"
+                        is Image.Url -> it.url
+                        is Image.File -> it.filePath
+                        is Image.EmbeddedSVG -> TODO()
+                    }
+                }
             }
 
-    override fun web(content: ObservableProperty<String>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun web(content: ObservableProperty<String>): HTMLElement = TODO()
 
-    override fun space(size: Point): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun space(size: Point): HTMLDivElement = document.createElement("div")
+            .let { it as HTMLDivElement }
+            .apply {
+                this.style.cssText = "width: ${size.x}px; height: ${size.y}px"
+            }
 
-    override fun button(label: ObservableProperty<String>, image: ObservableProperty<Image?>, importance: Importance, onClick: () -> Unit): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun button(
+            label: ObservableProperty<String>,
+            image: ObservableProperty<Image?>,
+            importance: Importance,
+            onClick: () -> Unit
+    ): HTMLButtonElement = document.createElement("button")
+            .let { it as HTMLButtonElement }
+            .apply {
+                addClass(importance.toCssClass())
+                type = "button"
 
-    override fun imageButton(image: ObservableProperty<Image>, label: ObservableProperty<String?>, importance: Importance, onClick: () -> Unit): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+                val textNode: HTMLElement = text(label, importance, align = AlignPair.CenterCenter)
+                textNode.lifecycle = lifecycle
+                appendChild(textNode)
+
+                val imageNode: HTMLElement by lazy {
+                    image(image.transform {
+                        it ?: BuiltInSVGs.back(Color.white)
+                    })
+                }
+                var isImageAdded = false
+                lifecycle.bind(image) {
+                    if (it == null) {
+                        if (isImageAdded) {
+                            imageNode.lifecycle.parent = null
+                            removeChild(imageNode)
+                            isImageAdded = false
+                        }
+                    } else {
+                        if (!isImageAdded) {
+                            imageNode.lifecycle.parent = lifecycle
+                            appendChild(imageNode)
+                            isImageAdded = true
+                        }
+                    }
+                }
+                onclick = {
+                    onClick.invoke()
+                }
+            }
+
+    override fun imageButton(
+            image: ObservableProperty<Image>,
+            label: ObservableProperty<String?>,
+            importance: Importance,
+            onClick: () -> Unit
+    ): HTMLButtonElement = document.createElement("button")
+            .let { it as HTMLButtonElement }
+            .apply {
+                addClass(importance.toCssClass())
+                type = "button"
+
+                val imageNode: HTMLElement = image(image)
+                imageNode.lifecycle = lifecycle
+                appendChild(imageNode)
+
+                val textNode: HTMLElement by lazy {
+                    text(label.transform {
+                        it ?: ""
+                    }, importance, align = AlignPair.CenterCenter)
+                }
+                var isTextAdded = false
+                lifecycle.bind(label) {
+                    if (it == null) {
+                        if (isTextAdded) {
+                            textNode.lifecycle.parent = null
+                            removeChild(textNode)
+                            isTextAdded = false
+                        }
+                    } else {
+                        if (!isTextAdded) {
+                            textNode.lifecycle.parent = lifecycle
+                            appendChild(textNode)
+                            isTextAdded = true
+                        }
+                    }
+                }
+                onclick = {
+                    onClick.invoke()
+                }
+            }
 
     override fun entryContext(label: String, help: String?, icon: Image?, feedback: ObservableProperty<Pair<Importance, String>?>, field: HTMLElement): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -183,9 +266,12 @@ class HtmlMaterialViewFactory(
     override fun horizontal(
             vararg views: Pair<PlacementPair, HTMLElement>
     ): HTMLElement = document.createElement("div").let { it as HTMLDivElement }.apply {
-        addClass("BoxHorizontal")
+        style.display = "flex"
+        style.flexDirection = "row"
         for ((placement, view) in views) {
-            appen
+            appendChild(view.apply {
+                //                when(placement.horizontal.)
+            })
         }
     }
 
