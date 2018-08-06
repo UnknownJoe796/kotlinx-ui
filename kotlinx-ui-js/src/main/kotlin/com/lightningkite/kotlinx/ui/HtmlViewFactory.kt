@@ -111,15 +111,19 @@ class HtmlViewFactory(
     override fun image(image: ObservableProperty<Image>): HTMLElement = document.createElement("img")
             .let { it as HTMLImageElement }
             .apply {
+                TODO()
             }
 
     override fun web(content: ObservableProperty<String>): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun space(size: Point): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun space(size: Point): HTMLElement = document.createElement("div")
+            .let { it as HTMLDivElement }
+            .apply {
+                style.width = size.x.toString() + "px"
+                style.height = size.y.toString() + "px"
+            }
 
     override fun button(label: ObservableProperty<String>, image: ObservableProperty<Image?>, importance: Importance, onClick: () -> Unit): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.

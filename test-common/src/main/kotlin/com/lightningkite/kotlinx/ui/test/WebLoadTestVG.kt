@@ -1,5 +1,6 @@
 package com.lightningkite.kotlinx.ui.test
 
+import com.lightningkite.kotlinx.exception.stackTraceString
 import com.lightningkite.kotlinx.httpclient.HttpBody
 import com.lightningkite.kotlinx.httpclient.HttpClient
 import com.lightningkite.kotlinx.httpclient.HttpMethod
@@ -38,8 +39,11 @@ class WebLoadTestVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
                 body = HttpBody.EMPTY,
                 typeInfo = KxType(ListReflection, false, listOf(KxTypeProjection(KxType(PostReflection, false))))
         ).invoke {
+            println(it)
             if (it is HttpResponse.Success) {
                 data.replace(it.result)
+            } else if (it is HttpResponse.Failure) {
+                println(it.exception?.stackTraceString())
             }
         }
     }
