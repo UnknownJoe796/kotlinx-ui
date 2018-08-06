@@ -19,20 +19,17 @@ import com.lightningkite.kotlinx.ui.geometry.LinearPlacement
 import com.lightningkite.kotlinx.ui.geometry.Point
 import com.lightningkite.kotlinx.ui.views.ViewFactory
 import com.lightningkite.kotlinx.ui.views.ViewGenerator
-import org.w3c.dom.HTMLElement
-import org.w3c.dom.HTMLHeadingElement
-import org.w3c.dom.HTMLImageElement
-import org.w3c.dom.HTMLParagraphElement
+import org.w3c.dom.*
 import kotlin.browser.document
 import kotlin.dom.addClass
 
 
-class HtmlMaterialViewFactory(
+class HtmlViewFactory(
         override val theme: Theme,
         override val colorSet: ColorSet
-) : ViewFactory<HTMLElement>, ThemedViewFactory<HtmlMaterialViewFactory> {
+) : ViewFactory<HTMLElement>, ThemedViewFactory<HtmlViewFactory> {
 
-    override fun withColorSet(colorSet: ColorSet) = HtmlMaterialViewFactory(theme, colorSet)
+    override fun withColorSet(colorSet: ColorSet) = HtmlViewFactory(theme, colorSet)
 
     override fun <DEPENDENCY> window(dependency: DEPENDENCY, stack: StackObservableProperty<ViewGenerator<DEPENDENCY, HTMLElement>>, tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, HTMLElement>>>, actions: ObservableList<Pair<TabItem, () -> Unit>>): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -184,51 +181,104 @@ class HtmlMaterialViewFactory(
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun scroll(view: HTMLElement): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun scroll(view: HTMLElement): HTMLElement = view.apply {
+        style.overflowY = "auto"
     }
 
     override fun swap(view: ObservableProperty<Pair<HTMLElement, Animation>>): HTMLElement {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun horizontal(vararg views: Pair<LinearPlacement, HTMLElement>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun horizontal(vararg views: Pair<LinearPlacement, HTMLElement>): HTMLElement = document.createElement("div")
+            .let { it as HTMLDivElement }
+            .apply {
+                style.display = "flex"
+                style.flexDirection = "row"
+                for ((placement, view) in views) {
+                    view.style.alignSelf = placement.align.toWeb()
+                    view.style.flexGrow = placement.weight.toString()
+                    view.lifecycle.parent = lifecycle
+                    appendChild(view)
+                }
+            }
+
+    override fun vertical(vararg views: Pair<LinearPlacement, HTMLElement>): HTMLElement = document.createElement("div")
+            .let { it as HTMLDivElement }
+            .apply {
+                style.display = "flex"
+                style.flexDirection = "column"
+                for ((placement, view) in views) {
+                    view.style.alignSelf = placement.align.toWeb()
+                    view.style.flexGrow = placement.weight.toString()
+                    view.lifecycle.parent = lifecycle
+                    appendChild(view)
+                }
+            }
+
+    override fun frame(vararg views: Pair<AlignPair, HTMLElement>): HTMLElement = document.createElement("div")
+            .let { it as HTMLDivElement }
+            .apply {
+                for ((align, view) in views) {
+                    view.style.position = "absolute"
+                    when (align.horizontal) {
+                        Align.Start -> view.style.left = "0px"
+                        Align.Center -> {
+                            view.style.left = "50%"
+                            view.style.transform = "translateX(-50%)"
+                        }
+                        Align.End -> view.style.right = "0px"
+                        Align.Fill -> view.style.width = "100%"
+                    }
+                    when (align.vertical) {
+                        Align.Start -> view.style.top = "0px"
+                        Align.Center -> {
+                            view.style.top = "50%"
+                            view.style.transform += " translateY(-50%)"
+                        }
+                        Align.End -> view.style.bottom = "0px"
+                        Align.Fill -> view.style.height = "100%"
+                    }
+                    view.lifecycle.parent = lifecycle
+                    appendChild(view)
+                }
+            }
+
+    override fun HTMLElement.setWidth(width: Float): HTMLElement = this.apply {
+        style.width = "$width px"
     }
 
-    override fun vertical(vararg views: Pair<LinearPlacement, HTMLElement>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun HTMLElement.setHeight(height: Float): HTMLElement = this.apply {
+        style.height = "$height px"
     }
 
-    override fun frame(vararg views: Pair<AlignPair, HTMLElement>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun card(view: HTMLElement): HTMLDivElement = document.createElement("div")
+            .let { it as HTMLDivElement }
+            .apply {
+                classList.add("card")
+                view.lifecycle.parent = lifecycle
+                appendChild(view)
+            }
+
+    override fun HTMLElement.margin(left: Float, top: Float, right: Float, bottom: Float): HTMLElement = this.apply {
+        style.marginLeft = "$left px"
+        style.marginTop = "$top px"
+        style.marginRight = "$right px"
+        style.marginBottom = "$bottom px"
     }
 
-    override fun HTMLElement.setWidth(width: Float): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun HTMLElement.background(color: ObservableProperty<Color>): HTMLElement = this.apply {
+        lifecycle.bind(color) {
+            style.backgroundColor = "#${color.value.toWeb()}"
+        }
     }
 
-    override fun HTMLElement.setHeight(height: Float): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun HTMLElement.alpha(alpha: ObservableProperty<Float>): HTMLElement = this.apply {
+        lifecycle.bind(alpha) {
+            style.opacity = it.toString()
+        }
     }
 
-    override fun card(view: HTMLElement): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun HTMLElement.margin(left: Float, top: Float, right: Float, bottom: Float): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun HTMLElement.background(color: ObservableProperty<Color>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun HTMLElement.alpha(alpha: ObservableProperty<Float>): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun HTMLElement.clickable(onClick: () -> Unit): HTMLElement {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun HTMLElement.clickable(onClick: () -> Unit): HTMLElement = this.apply {
+        onclick = { onClick.invoke() }
     }
 }
