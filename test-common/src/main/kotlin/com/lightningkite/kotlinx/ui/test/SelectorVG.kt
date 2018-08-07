@@ -3,9 +3,9 @@ package com.lightningkite.kotlinx.ui.test
 import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.StackObservableProperty
 import com.lightningkite.kotlinx.observable.property.transform
-import com.lightningkite.kotlinx.ui.Importance
-import com.lightningkite.kotlinx.ui.ViewFactory
-import com.lightningkite.kotlinx.ui.ViewGenerator
+import com.lightningkite.kotlinx.ui.concepts.Importance
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
 
 class SelectorVG<VIEW>(
         val stack: StackObservableProperty<ViewGenerator<ViewFactory<VIEW>, VIEW>>

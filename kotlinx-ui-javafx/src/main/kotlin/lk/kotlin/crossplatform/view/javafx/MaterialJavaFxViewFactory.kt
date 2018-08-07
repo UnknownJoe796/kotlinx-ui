@@ -9,9 +9,15 @@ import com.lightningkite.kotlinx.observable.list.ObservableList
 import com.lightningkite.kotlinx.observable.list.mapping
 import com.lightningkite.kotlinx.observable.property.*
 import com.lightningkite.kotlinx.observable.property.lifecycle.bind
-import com.lightningkite.kotlinx.ui.*
 import com.lightningkite.kotlinx.ui.color.Color
-import com.lightningkite.kotlinx.ui.helper.*
+import com.lightningkite.kotlinx.ui.color.ColorSet
+import com.lightningkite.kotlinx.ui.color.Theme
+import com.lightningkite.kotlinx.ui.color.ThemedViewFactory
+import com.lightningkite.kotlinx.ui.concepts.*
+import com.lightningkite.kotlinx.ui.geometry.*
+import com.lightningkite.kotlinx.ui.implementationhelpers.*
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
 import de.codecentric.centerdevice.javafxsvg.SvgImageLoaderFactory
 import javafx.application.Platform
 import javafx.beans.property.Property
@@ -47,13 +53,13 @@ data class MaterialJavaFxViewFactory(
         override val colorSet: ColorSet = theme.main,
         val resourceFetcher: (String) -> InputStream,
         val scale: Double = 1.0
-) : ViewFactory<Node> {
+) : ViewFactory<Node>, ThemedViewFactory<MaterialJavaFxViewFactory> {
 
     init {
         HttpClient.resultThread = { Platform.runLater(it) }
     }
 
-    override fun withColorSet(colorSet: ColorSet): ViewFactory<Node> = copy(colorSet = colorSet)
+    override fun withColorSet(colorSet: ColorSet) = copy(colorSet = colorSet)
 
     val TextSize.javafx
         get() = when (this) {
@@ -114,13 +120,13 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun horizontal(vararg views: Pair<PlacementPair, Node>) = HBox().apply {
+    override fun horizontal(vararg views: Pair<LinearPlacement, Node>) = HBox().apply {
         val parent = this
         for ((placement, view) in views) {
-            children += frame(PlacementPair(Placement.fill, placement.vertical) to view).apply {
+            children += frame(alignPair(Align.Fill, placement.align) to view).apply {
                 this.lifecycle.parent = parent.lifecycle
                 maxHeight = Double.MAX_VALUE
-                if (placement.horizontal.align == Align.Fill) {
+                if (placement.weight > 0f) {
                     maxWidth = Double.MAX_VALUE
                     HBox.setHgrow(this, Priority.ALWAYS)
                 }
@@ -128,13 +134,13 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun vertical(vararg views: Pair<PlacementPair, Node>) = VBox().apply {
+    override fun vertical(vararg views: Pair<LinearPlacement, Node>) = VBox().apply {
         val parent = this
         for ((placement, view) in views) {
-            children += frame(PlacementPair(placement.horizontal, Placement.fill) to view).apply {
+            children += frame(alignPair(placement.align, Align.Fill) to view).apply {
                 this.lifecycle.parent = parent.lifecycle
                 maxWidth = Double.MAX_VALUE
-                if (placement.vertical.align == Align.Fill) {
+                if (placement.weight > 0f) {
                     maxHeight = Double.MAX_VALUE
                     VBox.setVgrow(this, Priority.ALWAYS)
                 }
@@ -142,18 +148,18 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun frame(vararg views: Pair<PlacementPair, Node>) = StackPane().apply {
+    override fun frame(vararg views: Pair<AlignPair, Node>) = StackPane().apply {
         val parent = this
         for ((placement, view) in views) {
             children += view.apply {
                 this.lifecycle.parent = parent.lifecycle
-                StackPane.setAlignment(view, placement.alignPair.javafx)
+                StackPane.setAlignment(view, placement.javafx)
                 desiredMargins[this]?.let { StackPane.setMargin(this, it) }
                 (this as? Region)?.let {
-                    if (placement.vertical.align == Align.Fill) {
+                    if (placement.vertical == Align.Fill) {
                         it.maxHeight = Double.MAX_VALUE
                     }
-                    if (placement.horizontal.align == Align.Fill) {
+                    if (placement.horizontal == Align.Fill) {
                         it.maxWidth = Double.MAX_VALUE
                     }
                 }
@@ -183,13 +189,25 @@ data class MaterialJavaFxViewFactory(
             stack: StackObservableProperty<ViewGenerator<DEPENDENCY, Node>>,
             tabs: List<Pair<TabItem, ViewGenerator<DEPENDENCY, Node>>>,
             actions: ObservableList<Pair<TabItem, () -> Unit>>
-    ): Node = defaultLargeWindow(dependency, stack, tabs, actions)
+    ): Node = defaultLargeWindow(
+            theme = theme,
+            barBuilder = withColorSet(theme.bar),
+            dependency = dependency,
+            stack = stack,
+            tabs = tabs,
+            actions = actions
+    )
 
     override fun <DEPENDENCY> pages(
             dependency: DEPENDENCY,
             page: MutableObservableProperty<Int>,
             vararg pageGenerator: ViewGenerator<DEPENDENCY, Node>
-    ): Node = defaultPages(dependency, page, *pageGenerator)
+    ): Node = defaultPages(
+            buttonColor = theme.main.foreground,
+            dependency = dependency,
+            page = page,
+            pageGenerator = *pageGenerator
+    )
 
     override fun tabs(
             options: ObservableList<TabItem>,
@@ -363,8 +381,8 @@ data class MaterialJavaFxViewFactory(
                     is Image.EmbeddedSVG -> javafx.scene.image.Image(ByteArrayInputStream(it.data.toByteArray()))
                 }
                 Platform.runLater {
-                    it.size?.x?.times(scale)?.let { this.fitWidth = it }
-                    it.size?.y?.times(scale)?.let { this.fitHeight = it }
+                    it.defaultSize?.x?.times(scale)?.let { this.fitWidth = it }
+                    it.defaultSize?.y?.times(scale)?.let { this.fitHeight = it }
                     //TODO: Scale type
                     this.image = javafx
                 }
@@ -529,12 +547,12 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun dateTimePicker(observable: MutableObservableProperty<DateTime>): Node = horizontal(
-            PlacementPair.topFill to datePicker(observable = observable.transform(
+            LinearPlacement.fillFill to datePicker(observable = observable.transform(
                     mapper = { it.date },
                     reverseMapper = { observable.value.copy(date = it) }
             )),
-            PlacementPair.topFill to space(Point(8f, 8f)),
-            PlacementPair.topFill to timePicker(observable = observable.transform(
+            LinearPlacement.wrapFill to space(Point(8f, 8f)),
+            LinearPlacement.fillFill to timePicker(observable = observable.transform(
                     mapper = { it.time },
                     reverseMapper = { observable.value.copy(time = it) }
             ))
@@ -568,8 +586,8 @@ data class MaterialJavaFxViewFactory(
     }
 
     override fun refresh(contains: Node, working: ObservableProperty<Boolean>, onRefresh: () -> Unit): Node = frame(
-            PlacementPair.fillFill to contains,
-            PlacementPair.topRight to work(space(Point(20f, 20f)), working)
+            AlignPair.FillFill to contains,
+            AlignPair.TopRight to work(space(Point(20f, 20f)), working)
     )
 
     override fun scroll(view: Node) = ScrollPane(view).apply {
@@ -640,6 +658,15 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
+    override fun Node.setWidth(width: Float): Node {
+        prefWidth(width.toDouble())
+        return this
+    }
+
+    override fun Node.setHeight(height: Float): Node {
+        prefHeight(height.toDouble())
+        return this
+    }
 
     override fun Node.margin(left: Float, top: Float, right: Float, bottom: Float) = this.apply {
         desiredMargins[this] = Insets(top.toDouble(), right.toDouble(), bottom.toDouble(), left.toDouble())
@@ -654,7 +681,7 @@ data class MaterialJavaFxViewFactory(
         }
     }
 
-    override fun card(view: Node): Node = frame(PlacementPair.fillFill to view).apply {
+    override fun card(view: Node): Node = frame(AlignPair.FillFill to view).apply {
         background = Background(BackgroundFill(colorSet.background.toJavaFX(), CornerRadii(4.0 * scale), Insets.EMPTY))
         effect = DropShadow(3.0 * scale, 0.0, 1.0 * scale, Color.black.copy(alpha = .5f).toJavaFX())
         padding = Insets(8.0 * scale)

@@ -3,7 +3,7 @@ package com.lightningkite.kotlinx.ui.android
 import android.view.View
 
 var View.lifecycle
-    get() = com.lightningkite.kotlinx.ui.helper.AnyLifecycles.getOrPut(this) { com.lightningkite.kotlinx.ui.helper.TreeObservableProperty() }
+    get() = com.lightningkite.kotlinx.ui.implementationhelpers.AnyLifecycles.getOrPut(this) { com.lightningkite.kotlinx.ui.implementationhelpers.TreeObservableProperty() }
     set(value) {
-        com.lightningkite.kotlinx.ui.helper.AnyLifecycles[this] = value
+        com.lightningkite.kotlinx.ui.implementationhelpers.AnyLifecycles[this] = value
     }

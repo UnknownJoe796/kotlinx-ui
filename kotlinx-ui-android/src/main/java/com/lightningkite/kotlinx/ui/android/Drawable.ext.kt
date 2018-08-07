@@ -3,7 +3,7 @@ package com.lightningkite.kotlinx.ui.android
 import android.graphics.drawable.Drawable
 import com.larvalabs.svgandroid.SVG
 import com.larvalabs.svgandroid.SVGBuilder
-import com.lightningkite.kotlinx.ui.Image
+import com.lightningkite.kotlinx.ui.concepts.Image
 
 private val NumberRegex = Regex("\\d+\\.?\\d*")
 private val SVGCache = HashMap<String, SVG>()
@@ -21,7 +21,7 @@ fun Image.android(): Drawable = when (this) {
         ).build()
     }.drawable
 }.apply {
-    this@android.size?.let {
+    this@android.defaultSize?.let {
         setBounds(0, 0, (it.x * dip).toInt(), (it.y * dip).toInt())
     }
 }

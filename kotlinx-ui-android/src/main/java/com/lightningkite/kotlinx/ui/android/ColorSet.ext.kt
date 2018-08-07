@@ -1,8 +1,8 @@
 package com.lightningkite.kotlinx.ui.android
 
 import android.content.res.ColorStateList
-import com.lightningkite.kotlinx.ui.ColorSet
 import com.lightningkite.kotlinx.ui.color.Color
+import com.lightningkite.kotlinx.ui.color.ColorSet
 
 fun ColorSet.androidForeground() = ColorStateList(
         arrayOf(

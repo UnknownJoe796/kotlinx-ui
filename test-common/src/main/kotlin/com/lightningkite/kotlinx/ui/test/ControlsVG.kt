@@ -5,7 +5,10 @@ import com.lightningkite.kotlinx.locale.TimeStamps
 import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
 import com.lightningkite.kotlinx.observable.property.StandardObservableProperty
-import com.lightningkite.kotlinx.ui.*
+import com.lightningkite.kotlinx.ui.builders.vertical
+import com.lightningkite.kotlinx.ui.concepts.Importance
+import com.lightningkite.kotlinx.ui.views.ViewFactory
+import com.lightningkite.kotlinx.ui.views.ViewGenerator
 
 class ControlsVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
     override val title: String = "Controls"
@@ -13,59 +16,58 @@ class ControlsVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
 
     override fun generate(dependency: ViewFactory<VIEW>): VIEW = with(dependency) {
         scroll(vertical {
-            defaultPlacement = PlacementPair.topFill
 
-            +entryContext(
+            -entryContext(
                     label = "button",
                     field = button(label = ConstantObservableProperty("Button"), importance = Importance.Low, onClick = {})
             )
-            +entryContext(
+            -entryContext(
                     label = "button",
                     field = button(label = ConstantObservableProperty("Button"), importance = Importance.Normal, onClick = {})
             )
-            +entryContext(
+            -entryContext(
                     label = "button",
                     field = button(label = ConstantObservableProperty("Button"), importance = Importance.High, onClick = {})
             )
-            +entryContext(
+            -entryContext(
                     label = "button",
                     field = button(label = ConstantObservableProperty("Button"), importance = Importance.Danger, onClick = {})
             )
-            +entryContext(
+            -entryContext(
                     label = "textField",
                     field = textField(text = StandardObservableProperty("TextField"))
             )
-            +entryContext(
+            -entryContext(
                     label = "textArea",
                     field = textArea(text = StandardObservableProperty("TextArea"))
             )
-            +entryContext(
+            -entryContext(
                     label = "numberField",
                     field = numberField(value = StandardObservableProperty(22))
             )
-            +entryContext(
+            -entryContext(
                     label = "slider",
                     field = slider(0..100, StandardObservableProperty(22))
             )
-            +entryContext(
+            -entryContext(
                     label = "picker",
-                    field = picker(observableListOf("A", "B", "C"), StandardObservableProperty("A"), {
+                    field = picker(observableListOf("A", "B", "C"), StandardObservableProperty("A")) {
                         text(it)
-                    })
+                    }
             )
-            +entryContext(
+            -entryContext(
                     label = "toggle",
                     field = toggle(StandardObservableProperty(false))
             )
-            +entryContext(
+            -entryContext(
                     label = "datePicker",
                     field = datePicker(StandardObservableProperty(TimeStamps.now().date()))
             )
-            +entryContext(
+            -entryContext(
                     label = "timePicker",
                     field = timePicker(StandardObservableProperty(TimeStamps.now().time()))
             )
-            +entryContext(
+            -entryContext(
                     label = "dateTimePicker",
                     field = dateTimePicker(StandardObservableProperty(DateTime(TimeStamps.now().date(), TimeStamps.now().time())))
             )
