@@ -27,6 +27,7 @@ import android.webkit.WebView
 import android.widget.*
 import com.lightningkite.kotlinx.locale.*
 import com.lightningkite.kotlinx.locale.Date
+import com.lightningkite.kotlinx.locale.Locale
 import com.lightningkite.kotlinx.observable.list.ObservableList
 import com.lightningkite.kotlinx.observable.list.ObservableListListenerSet
 import com.lightningkite.kotlinx.observable.list.lifecycle.bind
@@ -519,7 +520,7 @@ open class AndroidMaterialViewFactory(
     }
 
     override fun datePicker(observable: MutableObservableProperty<Date>): View = button(
-            label = observable.transform { Locales.defaultLocale.renderDate(it) },
+            label = observable.transform { Locale.defaultLocale.renderDate(it) },
             onClick = {
                 val start: Calendar = observable.value.toJava()
                 DatePickerDialog(
@@ -538,7 +539,7 @@ open class AndroidMaterialViewFactory(
     )
 
     override fun dateTimePicker(observable: MutableObservableProperty<DateTime>): View = button(
-            label = observable.transform { Locales.defaultLocale.renderDateTime(it) },
+            label = observable.transform { Locale.defaultLocale.renderDateTime(it) },
             onClick = {
                 val start: Calendar = observable.value.toJava()
                 DatePickerDialog(
@@ -567,7 +568,7 @@ open class AndroidMaterialViewFactory(
     )
 
     override fun timePicker(observable: MutableObservableProperty<Time>): View = button(
-            label = observable.transform { Locales.defaultLocale.renderTime(it) },
+            label = observable.transform { Locale.defaultLocale.renderTime(it) },
             onClick = {
                 val start: Calendar = observable.value.toJava()
                 TimePickerDialog(

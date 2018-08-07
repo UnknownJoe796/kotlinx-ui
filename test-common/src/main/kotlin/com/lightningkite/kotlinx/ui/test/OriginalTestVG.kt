@@ -31,8 +31,7 @@ class OriginalTestVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
             -text(text = "Subheader", size = TextSize.Subheader)
             -text(text = "Body", size = TextSize.Body)
             -text(text = "Tiny", size = TextSize.Tiny)
-            -image(BuiltInSVGs.leftChevron(Color.white))
-            -image(BuiltInSVGs.leftChevron(Color.white))
+            -image(BuiltInSVGs.leftChevron(Color.blue))
             -progress(space(Point(24f, 24f)), ConstantObservableProperty(.5f))
             -work(space(Point(24f, 24f)), ConstantObservableProperty(true))
             -button(label = ConstantObservableProperty("Button"), onClick = {

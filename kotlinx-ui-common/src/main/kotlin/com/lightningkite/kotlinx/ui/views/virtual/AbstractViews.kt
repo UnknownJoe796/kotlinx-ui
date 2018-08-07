@@ -9,9 +9,9 @@ abstract class View {
 }
 
 abstract class ContainerView : View() {
-    abstract fun views(): List<View>
+    abstract fun listViews(): List<View>
 
-    fun recursiveViews(): Sequence<View> = views().asSequence().recursiveFlatMap {
-        (it as? ContainerView)?.views()?.asSequence() ?: sequenceOf()
+    fun recursiveViews(): Sequence<View> = listViews().asSequence().recursiveFlatMap {
+        (it as? ContainerView)?.listViews()?.asSequence() ?: sequenceOf()
     }
 }

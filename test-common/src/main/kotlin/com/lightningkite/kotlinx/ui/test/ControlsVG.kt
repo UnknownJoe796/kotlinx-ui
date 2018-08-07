@@ -1,7 +1,8 @@
 package com.lightningkite.kotlinx.ui.test
 
 import com.lightningkite.kotlinx.locale.DateTime
-import com.lightningkite.kotlinx.locale.TimeStamps
+import com.lightningkite.kotlinx.locale.TimeStamp
+import com.lightningkite.kotlinx.locale.now
 import com.lightningkite.kotlinx.observable.list.observableListOf
 import com.lightningkite.kotlinx.observable.property.ConstantObservableProperty
 import com.lightningkite.kotlinx.observable.property.StandardObservableProperty
@@ -61,15 +62,15 @@ class ControlsVG<VIEW>() : ViewGenerator<ViewFactory<VIEW>, VIEW> {
             )
             -entryContext(
                     label = "datePicker",
-                    field = datePicker(StandardObservableProperty(TimeStamps.now().date()))
+                    field = datePicker(StandardObservableProperty(TimeStamp.now().date()))
             )
             -entryContext(
                     label = "timePicker",
-                    field = timePicker(StandardObservableProperty(TimeStamps.now().time()))
+                    field = timePicker(StandardObservableProperty(TimeStamp.now().time()))
             )
             -entryContext(
                     label = "dateTimePicker",
-                    field = dateTimePicker(StandardObservableProperty(DateTime(TimeStamps.now().date(), TimeStamps.now().time())))
+                    field = dateTimePicker(StandardObservableProperty(DateTime(TimeStamp.now().date(), TimeStamp.now().time())))
             )
         })
     }
